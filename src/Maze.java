@@ -1,4 +1,6 @@
 import labyrinth.util.collection.Grid;
+import labyrinth.util.collection.Position;
+
 import java.util.*;
 
 public class Maze {
