@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class Tile {
+
     public Tile(TileKind kind){
 
     }

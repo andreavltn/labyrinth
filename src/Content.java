@@ -1,2 +1,3 @@
-public sealed interface Content permits ...{
+public sealed interface Content permits None, Treasure, StartingPosition{
+
 }

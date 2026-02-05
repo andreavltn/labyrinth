@@ -6,20 +6,23 @@ import java.util.*;
 public class Maze {
     private Set<Integer> fixedRows;
     private Set<Integer> fixedColumns;
+    private final Grid<Tile> grid;
+    private final Tile extraTile;
 
-    public Maze(Grid<Tile> tiles, Tile extraTile, Set<Integer> fixedRows, Set<Integer> fixedColumns) {
-
+    public Maze(Grid<Tile> tiles, Tile extraTile, Set<Integer> fixedRows, Set<Integer> fixedColumns, Grid<Tile> grid) {
+        this.grid = grid;
+        this.extraTile = extraTile;
     }
 
     public Grid<Tile> getTiles() {
-        return null;
+        return this.grid;
     }
 
     public Position getPosition(Tile tile){
         return null;
     }
 
-    public Set<Integer> getFixedLines() {
+    public Set<Integer> getFixedRows() {
         return null;
     }
 
@@ -28,7 +31,7 @@ public class Maze {
     }
 
     public Tile getExtraTile(){
-        return null;
+        return this.extraTile;
     }
 
 }
