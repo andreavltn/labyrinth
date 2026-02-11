@@ -2,31 +2,48 @@ import java.util.*;
 
 public class Tile {
 
-    public Tile(TileKind kind){
+    private final TileKind kind; // le type de tuile (coude, couloir, T)
+    private final Content content; // le contenu de la tuile (None/Treasure/StartingPosition)
+    private final Direction orientation; // l'orientation de la tuile (Up/Down/Left/Right)
 
+    public Tile(TileKind kind) { // à partir d'un type, contenu None(), orientation Up par défaut
+        this.kind = kind;
+        this.content = new None();
+        this.orientation = Direction.UP;
     }
 
-    public Tile(TileKind kind, Content content){
-
+    public Tile(TileKind kind, Content content) { // idem avec le contenu choisi
+        this.kind = kind;
+        this.content = content;
+        this.orientation = Direction.UP;
     }
 
-    public Tile(TileKind kind, Content content, Direction orientation){
-
+    public Tile(TileKind kind, Content content, Direction orientation) { // idem avec tous les paramètres choisis
+        this.kind = kind;
+        this.content = content;
+        this.orientation = orientation;
     }
 
     public TileKind getKind(){
-        return null;
+        return this.kind;
     }
 
     public Content getContent(){
-        return null;
+        return this.content;
     }
 
     public Direction getOrientation(){
-        return null;
+        return this.orientation;
     }
 
-    public Set<Direction> getExists(){
-        return null;
+    public Set<Direction> getExits(){
+        Set<Direction> result = new HashSet<>(); // nouveau set
+
+        for (Direction dir : kind.getExits()) { // pour chaque orientation de sortie de la tuile
+            Direction newDir = dir.getRotated(orientation.ordinal()); // applique la rotation de la tuile
+            result.add(newDir); // ajoute au set l'orientation après rotation
+        }
+
+        return result;
     }
 }
