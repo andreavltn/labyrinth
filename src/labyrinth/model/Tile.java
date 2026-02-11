@@ -1,12 +1,14 @@
+package labyrinth.model;
+
 import java.util.*;
 
 public class Tile {
 
     private final TileKind kind; // le type de tuile (coude, couloir, T)
-    private final Content content; // le contenu de la tuile (None/Treasure/StartingPosition)
+    private final Content content; // le contenu de la tuile (labyrinth.model.None/labyrinth.model.Treasure/labyrinth.model.StartingPosition)
     private final Direction orientation; // l'orientation de la tuile (Up/Down/Left/Right)
 
-    public Tile(TileKind kind) { // à partir d'un type, contenu None(), orientation Up par défaut
+    public Tile(TileKind kind) { // à partir d'un type, contenu labyrinth.model.None(), orientation Up par défaut
         this.kind = kind;
         this.content = new None();
         this.orientation = Direction.UP;

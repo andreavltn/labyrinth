@@ -1,3 +1,5 @@
+package labyrinth.model;
+
 import labyrinth.util.collection.Grid;
 import labyrinth.util.collection.Position;
 

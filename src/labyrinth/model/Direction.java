@@ -1,3 +1,5 @@
+package labyrinth.model;
+
 public enum Direction {
     UP, RIGHT, DOWN, LEFT; // direction ordonnées
 
