@@ -81,8 +81,74 @@ public class MazeFormatter {
         return String.valueOf(val); // conversion en String
     }
 
-    // méthode qui renvoie la chaine associée à la représentation complète du labyrinthe
+    // méthode qui renvoie la chaine associée à la réprésentation complète du labyrinthe
     public String format(Maze maze) {
-        return null;
+
+        // récupère les données
+        Grid<Tile> grid = maze.getTiles(); // la grille des tuiles
+        int width = grid.getWidth(); // largeur
+        int height = grid.getHeight(); // hauteur
+
+        // création de la chaine
+        StringBuilder res = new StringBuilder();
+
+        // pour chaque ligne du jeu
+        for (int y = 0; y < height; y++) {
+
+            // retour à la ligne entre chaque ligne après la 1ère
+            if (y > 0) {
+                res.append('\n');
+            }
+
+            // ajout du formatage de la ligne
+            res.append(formatRow(grid, width, y));
+        }
+
+        return res.toString();
+    }
+
+    // méthode qui renvoie la chaine associée à la représentation d'une rangée/ligne du labyrinthe
+    // l'idée est de récupérer chaque première ligne de chaque tuile, et d'en faire une grande ligne
+    // puis de répéter jusqu'à avoir toutes les tuiles en entier
+    private String formatRow(Grid<Tile> grid, int width, int y) {
+
+        // tableau des lignes de chaque tuile de la rangée
+        String[][] lignsOfTiles = new String[width][];
+
+        // pour chaque tuile de la rangée
+        for (int x = 0; x < width; x++) {
+            String tileToText = format(grid.get(x, y)); // conversion en chaine via format(Tile)
+            lignsOfTiles[x] = tileToText.split("\n"); // ajout de chaque ligne au tableau
+            // (string split via le caractère "\n" qui indique qu'on passe à la ligne suivante)
+        }
+
+        // création de la chaine
+        StringBuilder sb = new StringBuilder();
+
+        // récupère le nombre de lignes par tuile (5 de base, mais changeable dans le futur)
+        int lignsPerTile = lignsOfTiles[0].length;
+
+        // pour chaque ligne des tuiles (5 lignes par tuile)
+        for (int j = 0; j < lignsPerTile; j++) {
+
+            // retour à la ligne après la première "grande ligne"
+            if (j > 0) {
+                sb.append('\n');
+            }
+
+            // pour chaque tuile en largeur
+            for (int x = 0; x < width; x++) {
+
+                // petit espace en largeur après la première tuile
+                if (x > 0) {
+                    sb.append(' ');
+                }
+
+                // ajout de la ligne à la chaine
+                sb.append(lignsOfTiles[x][j]);
+            }
+        }
+
+        return sb.toString();
     }
 }
