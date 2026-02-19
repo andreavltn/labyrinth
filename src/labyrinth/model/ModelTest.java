@@ -112,7 +112,7 @@ public class ModelTest {
 
     @Test
     void getPositionMissingTile() {
-        // tester si la position d'une tuile non existante (pas présente) renvoie null
+        // tester si la position d'une tuile non existante (absente) renvoie null
         Grid<Tile> grid = new ArrayGrid<>(2, 2);
         grid.set(0, 0, new Tile(TileKind.CORRIDOR));
         grid.set(1, 0, new Tile(TileKind.ELBOW));
@@ -120,9 +120,9 @@ public class ModelTest {
         grid.set(1, 1, new Tile(TileKind.CORRIDOR));
 
         Maze maze = new Maze(grid, new Tile(TileKind.T_CROSS), Set.of(), Set.of());
-        Tile tileAbsente = new Tile(TileKind.ELBOW); // pas dans la grille
+        Tile missingTile = new Tile(TileKind.ELBOW); // pas dans la grille
 
-        assertNull(maze.getPosition(tileAbsente));
+        assertNull(maze.getPosition(missingTile));
     }
 
     @Test
