@@ -7,6 +7,7 @@ public class Player {
 
     public Player(int index){
         this.index = index;
+        this.deck = new Deck();
     }
 
     public int getIndex(){

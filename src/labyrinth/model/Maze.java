@@ -70,9 +70,10 @@ public class Maze {
         for (int x = 0; x < grid.getWidth(); x++) {
             for (int y = 0; y < grid.getHeight(); y++) {
                 Tile tile = grid.get(x, y); // récupère la tuile
+                Content contenu = tile.getContent(); // récupère son contenu
 
-                // si c'est une tuile de type "StartingPosition", et que l'index correspond
-                if (tile.getContent() instanceof StartingPosition sp && sp.index() == player.getIndex()) {
+                // si le contenu de la tuile est la position de départ du joueur recherché
+                if(contenu.isStartingPositionFor(player.getIndex())){
                     return tile; // alors la renvoie
                 }
             }

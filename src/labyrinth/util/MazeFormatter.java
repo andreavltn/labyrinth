@@ -3,6 +3,8 @@ package labyrinth.util;
 import labyrinth.model.*;
 import labyrinth.util.collection.Grid;
 
+import java.util.List;
+
 public class MazeFormatter {
 
     // caractères spéciaux pour dessiner les tuiles
@@ -22,6 +24,18 @@ public class MazeFormatter {
         boolean left = tile.getExits().contains(Direction.LEFT);
         boolean right= tile.getExits().contains(Direction.RIGHT);
 
+        // récupère les index des joueurs
+        List<Player> players = tile.getPlayers();
+
+        // valeurs dans les coins (index du/des joueurs)
+        // si il y a au moins 1 joueur, le premier est en haut à gauche
+        // si il y a au moins 2 joueurs, le deuxième est en haut à droite
+        // etc...
+        String c_TL = !players.isEmpty() ? String.valueOf(players.get(0).getIndex()) : " ";
+        String c_TR = players.size() > 1 ? String.valueOf(players.get(1).getIndex()) : " ";
+        String c_BL = players.size() > 2 ? String.valueOf(players.get(2).getIndex()) : " ";
+        String c_BR = players.size() > 3 ? String.valueOf(players.get(3).getIndex()) : " ";
+
         // récupérer le contenu de la tuile
         String center = getContentChar(tile.getContent());
 
@@ -38,7 +52,9 @@ public class MazeFormatter {
 
         // 2è ligne
         sb.append(V);
-        sb.append("       "); // vide
+        sb.append(c_TL);
+        sb.append("     "); // vide
+        sb.append(c_TR);
         sb.append(V);
         sb.append('\n');
 
@@ -50,7 +66,9 @@ public class MazeFormatter {
 
         // 4è ligne (idem que ligne 2)
         sb.append(V);
+        sb.append(c_BL);
         sb.append("       ");
+        sb.append(c_BR);
         sb.append(V);
         sb.append('\n');
 
