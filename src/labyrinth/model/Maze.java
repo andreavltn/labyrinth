@@ -38,15 +38,46 @@ public class Maze {
     }
 
     public Set<Integer> getFixedRows() {
-        return Set.copyOf(fixedRows); // immutable
+        return Set.copyOf(this.fixedRows); // immutable
     }
 
     public Set<Integer> getFixedColumns() {
-        return Set.copyOf(fixedColumns); // immutable
+        return Set.copyOf(this.fixedColumns); // immutable
     }
 
     public Tile getExtraTile() {
         return this.extraTile;
+    }
+
+    public Tile getTile(Player player){
+
+        // pour chaque tuile du jeu
+        for (int x = 0; x < grid.getWidth(); x++) {
+            for (int y = 0; y < grid.getHeight(); y++) {
+                Tile tile = grid.get(x, y); // récupère la tuile
+                if(tile.getPlayers().contains(player)){ // si sa liste de joueurs contient le joueur cherché
+                    return tile; // alors la renvoie
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Tile getStartingTile(Player player){
+
+        // pour chaque tuile du jeu
+        for (int x = 0; x < grid.getWidth(); x++) {
+            for (int y = 0; y < grid.getHeight(); y++) {
+                Tile tile = grid.get(x, y); // récupère la tuile
+
+                // si c'est une tuile de type "StartingPosition", et que l'index correspond
+                if (tile.getContent() instanceof StartingPosition sp && sp.index() == player.getIndex()) {
+                    return tile; // alors la renvoie
+                }
+            }
+        }
+        return null;
     }
 
 }
