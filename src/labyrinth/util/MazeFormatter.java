@@ -67,7 +67,7 @@ public class MazeFormatter {
         // 4è ligne (idem que ligne 2)
         sb.append(V);
         sb.append(c_BL);
-        sb.append("       ");
+        sb.append("     ");
         sb.append(c_BR);
         sb.append(V);
         sb.append('\n');
