@@ -2,7 +2,6 @@ package labyrinth.model;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-
 import labyrinth.util.collection.ArrayGrid;
 import labyrinth.util.collection.Grid;
 import labyrinth.util.collection.Position;
