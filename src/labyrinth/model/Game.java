@@ -16,7 +16,6 @@ public class Game {
         for (int i = 0; i < 4; i++) {
             this.slots.add(new Slot(this, i)); // 4 slots ouverts
         }
-        this.maze = MazeBuilder.buildStandardMaze();
 
         //Création des joueurs
         this.players = new ArrayList<>();

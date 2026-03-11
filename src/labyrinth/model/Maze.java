@@ -49,18 +49,17 @@ public class Maze {
         return this.extraTile;
     }
 
-    public Tile getTile(Player player){
+    public Tile getTile(Player player) {
 
-        // pour chaque tuile du jeu
-        for (int x = 0; x < grid.getWidth(); x++) {
-            for (int y = 0; y < grid.getHeight(); y++) {
-                Tile tile = grid.get(x, y); // récupère la tuile
-                if(tile.getPlayers().contains(player)){ // si sa liste de joueurs contient le joueur cherché
-                    return tile; // alors la renvoie
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                Tile tile = grid.get(x, y);
+                if (tile.getContent().isStartingPositionFor(player.getIndex())) {
+                    return tile;
                 }
+
             }
         }
-
         return null;
     }
 
