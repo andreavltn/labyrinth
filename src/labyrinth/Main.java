@@ -1,12 +1,5 @@
 package labyrinth;
 
-import labyrinth.model.*;
-import labyrinth.util.MazeFormatter;
-import labyrinth.util.collection.ArrayGrid;
-import labyrinth.util.collection.Grid;
-
-import java.util.Set;
-
 import labyrinth.model.Game;
 
 public class Main {
