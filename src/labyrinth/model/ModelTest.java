@@ -9,6 +9,8 @@ import java.util.Set;
 
 public class ModelTest {
 
+    // TESTS DE DIRECTION/TILE/MAZE
+
     // Direction.getRotated (tester les rotations des tuiles)
     @Test
     void getRotatedZero() {
@@ -138,5 +140,70 @@ public class ModelTest {
 
         // l'extraTile n'est pas dans la grille
         assertNull(maze.getPosition(extraTile));
+    }
+
+
+
+    // TESTS CONSTRUCTEUR DE MAZE
+
+    @Test
+    void maze_NPE_IfTilesNull() {
+        // labyrinthe nul
+        assertThrows(NullPointerException.class, () ->
+                new Maze(null, new Tile(TileKind.ELBOW), Set.of(), Set.of())
+        );
+    }
+
+    @Test
+    void maze_NPE_IfExtraTileNull() {
+        Grid<Tile> grid = new ArrayGrid<>(1, 1); // grille 1x1
+        grid.set(0, 0, new Tile(TileKind.ELBOW)); // ajout d'une tuile à la grille
+        // labyrinthe avec une extra tile nulle
+        assertThrows(NullPointerException.class, () ->
+                new Maze(grid, null, Set.of(), Set.of())
+        );
+    }
+
+    @Test
+    void maze_NPE_IfOneTileInGridNull() {
+        Grid<Tile> grid = new ArrayGrid<>(2, 2); // grille 2x2
+        grid.set(0, 0, new Tile(TileKind.ELBOW)); // ajout d'une tuile
+        // labyrinthe avec une tuile (et les autres manquantes)
+        assertThrows(NullPointerException.class, () ->
+                new Maze(grid, new Tile(TileKind.ELBOW), Set.of(), Set.of())
+        );
+    }
+
+    @Test
+    void maze_IAE_IfDuplicateTileInstance() {
+        Grid<Tile> grid = new ArrayGrid<>(2, 1); // grille 2x1
+        Tile tile = new Tile(TileKind.ELBOW); // une tuile
+        grid.set(0, 0, tile); // ajoute la même instance a deux emplacements de la grille
+        grid.set(1, 0, tile);
+        // labyrinthe avec deux fois la même instance d'une tuile
+        assertThrows(IllegalArgumentException.class, () ->
+                new Maze(grid, new Tile(TileKind.ELBOW), Set.of(), Set.of())
+        );
+    }
+
+    @Test
+    void maze_IAE_IfMissingStartingPosition() {
+        Grid<Tile> grid = new ArrayGrid<>(1, 1); // grille 1x1
+        grid.set(0, 0, new Tile(TileKind.CORRIDOR)); // une tuile
+        // labyrinthe sans starting position
+        assertThrows(IllegalArgumentException.class, () ->
+                new Maze(grid, new Tile(TileKind.ELBOW), Set.of(), Set.of())
+        );
+    }
+
+    @Test
+    void maze_IAE_IfDuplicateTreasure() {
+        Grid<Tile> grid = new ArrayGrid<>(2, 1); // grille 2x1
+        grid.set(0, 0, new Tile(TileKind.T_CROSS, new Treasure(0))); // une tuile trésor id=0
+        grid.set(1, 0, new Tile(TileKind.T_CROSS, new Treasure(0))); // une autre tuile trésor avec même id
+        // labyrinthe avec deux fois le même trésor
+        assertThrows(IllegalArgumentException.class, () ->
+                new Maze(grid, new Tile(TileKind.ELBOW), Set.of(), Set.of())
+        );
     }
 }
