@@ -2,41 +2,49 @@ package labyrinth;
 
 import labyrinth.model.*;
 import labyrinth.util.MazeFormatter;
-import labyrinth.util.collection.ArrayGrid;
-import labyrinth.util.collection.Grid;
-import java.util.Set;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        // grille 3x2 (6 tuiles)
-        Grid<Tile> grid = new ArrayGrid<>(3, 2);
-
-        // remplissage des 6 tuiles
-        grid.set(0, 0, new Tile(TileKind.ELBOW, new StartingPosition(0), Direction.RIGHT));
-        grid.set(1, 0, new Tile(TileKind.CORRIDOR, new None(), Direction.LEFT));
-        grid.set(2, 0, new Tile(TileKind.ELBOW, new StartingPosition(1), Direction.DOWN));
-        grid.set(0, 1, new Tile(TileKind.T_CROSS, new StartingPosition(2), Direction.LEFT));
-        grid.set(1, 1, new Tile(TileKind.CORRIDOR, new Treasure(0)));
-        grid.set(2, 1, new Tile(TileKind.T_CROSS, new StartingPosition(3), Direction.LEFT));
-
-        // tuile supplémentaire
-        Tile extraTile = new Tile(TileKind.T_CROSS, new None());
-
-        // création du labyrinthe
-        Maze maze = new Maze(grid, extraTile, Set.of(), Set.of());
-
         // création du jeu
         Game game = new Game();
 
-        System.out.println("Game created");
-        for (var player : game.getPlayers()) {
-            System.out.println("Player " + player.getIndex() + " ready");
-        }
+        // ouverture des slots
+        game.getSlot(0).open();
+        game.getSlot(1).open();
+        game.getSlot(2).open();
+        game.getSlot(3).open();
+
+        // initialisation du jeu (création d'un labyrinthe standard 7x7) - SETUP
+        game.init();
+
+        System.out.println("Jeu créé!");
+        System.out.println("Id du joueur courant : " + game.getCurrentPlayer().getIndex());
+        System.out.println("Etat actuel du jeu: " + game.getState());
 
         // affichage du labyrinthe
         MazeFormatter formatter = new MazeFormatter();
-        System.out.println(formatter.format(maze));
+        System.out.println(formatter.format(game.getMaze()));
+
+        // le joueur 0 joue un coup (pousse la colonne 1 vers le bas) - MAZE_MOVE
+        game.moveMaze(new MazeMove(Direction.DOWN, 1));
+        System.out.println("Le joueur a joué un coup!");
+        System.out.println("Etat actuel du jeu: " + game.getState());
+        System.out.println(formatter.format(game.getMaze()));
+
+        // déplacement du joueur 0 sur la tuile (1,0) - PLAYER_MOVE
+        Tile destination = game.getMaze().getTiles().get(1, 0);
+        game.movePlayer(destination);
+        System.out.println("Le joueur s'est déplacé!");
+        System.out.println("Etat actuel du jeu : " + game.getState()); // TURN_END ou GAME_OVER
+        System.out.println(formatter.format(game.getMaze()));
+
+        // fin du tour - TURN-END
+        game.endTurn();
+        System.out.println("Le tour est terminé!");
+        System.out.println("Id du joueur courant : " + game.getCurrentPlayer().getIndex());
+        System.out.println("Etat actuel du jeu : " + game.getState());
+        System.out.println(formatter.format(game.getMaze()));
     }
 }

@@ -147,6 +147,21 @@ public class Game {
         // place le joueur sur la nouvelle tuile
         tile.addPlayer(currentPlayer);
 
+        // défausse la première carte de sa pioche si il se retrouve sur le trésor qu'il cherche
+        Deck deck = currentPlayer.getDeck(); // récupère le deck du joueur
+        List<Integer> drawPile = deck.getDrawPile(); // récupère la pioche associée
+        if (!drawPile.isEmpty()) { // si il lui reste des trésors à trouver
+            Content content = tile.getContent(); // récupère le contenu de la tuile courante
+            switch (content) {
+                case Treasure t -> { // si c'est un trésor
+                    if (t.id() == drawPile.getFirst()) { // si c'est le trésor recherché (première carte de la pioche)
+                        deck.discard(); // alors on défausse la carte
+                    }
+                }
+                default -> {} // sinon on ne fait rien
+            }
+        }
+
         // vérifie si le joueur a gagné
         if (hasWon(currentPlayer)) {
             this.state = GameState.GAME_OVER; // si il a gagné, fin du jeu
