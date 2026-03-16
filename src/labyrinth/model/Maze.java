@@ -7,10 +7,11 @@ import java.util.*;
 
 public class Maze {
 
-    private final Grid<Tile> grid;
-    private final Tile extraTile;
-    private final Set<Integer> fixedRows;
-    private final Set<Integer> fixedColumns;
+    private final Grid<Tile> grid; // la grille de tuiles du jeu
+    private Tile extraTile; // la tuile supplémentaire
+    private final Set<Integer> fixedRows; // indices des lignes fixes
+    private final Set<Integer> fixedColumns; // indices des colonnes fixes
+    private MazeMove forbiddenMove; // le mouvement interdit du tour en cours
 
     public Maze(Grid<Tile> tiles, Tile extraTile, Set<Integer> fixedRows, Set<Integer> fixedColumns) {
 
@@ -149,6 +150,67 @@ public class Maze {
             }
         }
         return null;
+    }
+
+    public MazeMove getForbiddenMove() {
+        return this.forbiddenMove;
+    }
+
+    // un déplacement du jeu (le joueur pose une tuile sur un slot)
+    public void move(MazeMove move) {
+
+        // vérification mouvement interdit
+        if (move.equals(forbiddenMove)) {
+            throw new IllegalArgumentException("Ce mouvement est interdit");
+        }
+
+        // récupère les infos du mouvement
+        Direction direction = move.direction();
+        int index = move.index();
+
+        // déplacement
+        switch (direction) {
+
+            case DOWN -> { // si on déplace vers le bas
+                Tile exitTile = grid.get(index, grid.getHeight() - 1); // récupère la tuile tout en bas de la col
+                for (int y = grid.getHeight() - 1; y > 0; y--) { // pour chaque tuile de la colonne (
+                    grid.set(index, y, grid.get(index, y - 1)); // déplace d'une case vers le bas
+                }
+                grid.set(index, 0, extraTile); // place la tuile en haut de la col
+                this.extraTile = exitTile; // met à jour la tuile supplémentaire
+            }
+
+            case UP -> {
+                // idem ensuite dans toutes les directions
+                Tile exitTile = grid.get(index, 0);
+                for (int y = 0; y < grid.getHeight() - 1; y++) {
+                    grid.set(index, y, grid.get(index, y + 1));
+                }
+                grid.set(index, grid.getHeight() - 1, extraTile);
+                extraTile = exitTile;
+            }
+
+            case RIGHT -> {
+                Tile exitTile = grid.get(grid.getWidth() - 1, index);
+                for (int x = grid.getWidth() - 1; x > 0; x--) {
+                    grid.set(x, index, grid.get(x - 1, index));
+                }
+                grid.set(0, index, extraTile);
+                extraTile = exitTile;
+            }
+
+            case LEFT -> {
+                Tile exitTile = grid.get(0, index);
+                for (int x = 0; x < grid.getWidth() - 1; x++) {
+                    grid.set(x, index, grid.get(x + 1, index));
+                }
+                grid.set(grid.getWidth() - 1, index, extraTile);
+                extraTile = exitTile;
+            }
+        }
+
+        // stocke le mouvement interdit pour le prochain tour
+        this.forbiddenMove = move.getOpposite();
     }
 
 }
