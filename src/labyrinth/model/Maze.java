@@ -126,10 +126,9 @@ public class Maze {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 Tile tile = grid.get(x, y);
-                if (tile.getContent().isStartingPositionFor(player.getIndex())) {
+                if (tile.getPlayers().contains(player)) {
                     return tile;
                 }
-
             }
         }
         return null;
