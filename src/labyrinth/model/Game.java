@@ -1,6 +1,9 @@
 package labyrinth.model;
 
 import labyrinth.util.collection.Grid;
+import labyrinth.util.graph.Paths;
+import labyrinth.util.graph.Graph;
+import labyrinth.util.graph.MazeToGraphAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +17,8 @@ public class Game {
     private final List<Player> players; // les joueurs
     private GameState state;  // l'état courant du jeu
     private Player currentPlayer; // le joueur courant
-    private final Random random;
+    private final Random random; // générateur aléatoire
+    private Paths<Tile> paths; // les chemins accessibles par le joueur courant
 
     public Game() {
         this.slots = new ArrayList<>(); // liste de 4 slots
@@ -131,13 +135,19 @@ public class Game {
             throw new IllegalStateException("Le jeu n'est pas en état MAZE_MOVE");
         }
         maze.move(move); // exécute le déplacement
+        computePaths(); // recalcule les chemins accessibles
         this.state = GameState.PLAYER_MOVE; // avance le staut à l'état de déplacement du joueur
     }
 
     // déplacer le joueur vers une tuile (PLAYER_MOVE)
     public void movePlayer(Tile tile) {
-        if (this.state != GameState.PLAYER_MOVE) { // si on n'est pas au bon état
-            throw new IllegalStateException("Le jeu n'est pas en état PLAYER_MOVE");
+
+        if (this.state != GameState.PLAYER_MOVE) { // si on n'est pas au bon état du jeu
+            throw new IllegalStateException("Le jeu n'est pas en état PLAYER_MOVE!"); // erreur
+        }
+
+        if (!paths.isAccessible(tile)) { // si la tuile n'est pas accessible par un chemi,
+            throw new IllegalArgumentException("La tuile n'est pas accessible!"); // erreur
         }
 
         // retire le joueur de sa tuile actuelle
@@ -194,7 +204,19 @@ public class Game {
         // passe au joueur suivant
         int nextIndex = (players.indexOf(currentPlayer) + 1) % players.size(); // calcule index+1 modulo 4
         this.currentPlayer = players.get(nextIndex); // met à jour le joueur courant
+        computePaths(); // recalcule les chemins accessibles
 
-        this.state = GameState.MAZE_MOVE; // le nouveau joueur courant devra faire un mouvement
+        this.state = GameState.MAZE_MOVE; // le joueur courant devra faire un mouvement ensuite (état MAZE_MOVE)
+    }
+
+    public Paths<Tile> getPaths() {
+        return this.paths;
+    }
+
+    // calcule l'ensemble des chemins accessibles du joueur courant
+    private void computePaths() {
+        Graph<Tile> graph = MazeToGraphAdapter.getGraph(maze); // convertit le labyrinthe en graphe
+        Tile currentTile = maze.getTile(currentPlayer); // récupère la tuile du joueur courant
+        this.paths = new Paths<>(graph, currentTile); // calcule l'ensemble des chemins depuis cette tuile
     }
 }
