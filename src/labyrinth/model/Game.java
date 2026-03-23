@@ -4,21 +4,22 @@ import labyrinth.util.collection.Grid;
 import labyrinth.util.graph.Paths;
 import labyrinth.util.graph.Graph;
 import labyrinth.util.graph.MazeToGraphAdapter;
-
+import labyrinth.util.observable.ObservableValue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import labyrinth.util.observable.SimpleObservableValue;
 
 public class Game {
 
     private Maze maze; // le labyrinthe
-    private List<Slot> slots; // les slots de jeu
+    private final List<Slot> slots; // les slots de jeu
     private final List<Player> players; // les joueurs
-    private GameState state;  // l'état courant du jeu
-    private Player currentPlayer; // le joueur courant
+    private final SimpleObservableValue<GameState> state;  // l'état courant du jeu
+    private final SimpleObservableValue<Player> currentPlayer; // le joueur courant
     private final Random random; // générateur aléatoire
-    private Paths<Tile> paths; // les chemins accessibles par le joueur courant
+    private final SimpleObservableValue<Paths<Tile>> paths; // les chemins accessibles par le joueur courant
 
     public Game() {
         this.slots = new ArrayList<>(); // liste de 4 slots
@@ -26,10 +27,11 @@ public class Game {
             this.slots.add(new Slot(this, i)); // ajout des slots
         }
         this.players = new ArrayList<>(); // liste des joueurs
-        this.state = GameState.SETUP; // on est en SETUP au depart
-        this.currentPlayer = null; // pas de joueur courant
+        this.state = new SimpleObservableValue<>(GameState.SETUP);// on est en SETUP au depart
+        this.currentPlayer = new SimpleObservableValue<>(null); // pas de joueur courant
         this.maze = null; // pas de labyrinthe
         this.random = new Random(); // pour l'aléatoire
+        this.paths = new SimpleObservableValue<>(null); // pas de chemins pour l'instant
     }
 
     public Slot getSlot(int index){
@@ -52,19 +54,27 @@ public class Game {
         return players;
     }
 
+    public ObservableValue<GameState> stateProperty(){
+        return this.state.asReadOnly();
+    }
+
     public GameState getState() {
-        return this.state;
+        return this.state.getValue();
+    }
+
+    public ObservableValue<Player> currentPlayerProperty(){
+        return this.currentPlayer.asReadOnly();
     }
 
     public Player getCurrentPlayer() {
-        return this.currentPlayer;
+        return this.currentPlayer.getValue();
     }
 
     // initialise le jeu (SETUP)
     public void init() {
 
         // si on n'est pas au SETUP, erreur
-        if (this.state != GameState.SETUP) {
+        if (this.getState() != GameState.SETUP) {
             throw new IllegalStateException("Le jeu n'est pas en état SETUP");
         }
 
@@ -105,16 +115,22 @@ public class Game {
         }
 
         // choisit un premier joueur au hasard
-        this.currentPlayer = players.get(random.nextInt(players.size()));
+        Player randomPlayer = players.get(random.nextInt(players.size()));
+        this.currentPlayer.setValue(randomPlayer);
 
-        this.state = GameState.MAZE_MOVE; // avance à l'état suivant
+        // calcule les chemins du joueur courant
+        computePaths();
+
+        this.state.setValue(GameState.MAZE_MOVE); // passe à l'état suivant
     }
 
     // remettre le jeu à l'état initial
     public void reset() {
-        this.state = GameState.SETUP; // mode SETUP
+        this.state.setValue(GameState.SETUP); // mode SETUP
         this.maze = null; // pas de labyrinthe
-        this.currentPlayer = null; // pas de joueur courant
+        this.currentPlayer.setValue(null); // pas de joueur courant
+        this.paths.setValue(null); // pas de chemins
+
         for (Player player : players) { // réinitialise le deck de chaque joueur (vide)
             player.getDeck().init(new ArrayList<>());
         }
@@ -122,7 +138,7 @@ public class Game {
 
     // fait tourner la tuile supplémentaire
     public void rotateExtraTile(int nbTimes) {
-        if (this.state != GameState.MAZE_MOVE) { // si on n'est pas au bon état
+        if (this.getState() != GameState.MAZE_MOVE) { // si on n'est pas au bon état
             throw new IllegalStateException("Le jeu n'est pas en état MAZE_MOVE");
         }
         Tile extraTile = this.maze.getExtraTile(); // récupère la tuile supplémentaire
@@ -131,34 +147,34 @@ public class Game {
 
     // éxécute le mouvement (MAZE_MOVE)
     public void moveMaze(MazeMove move) {
-        if (this.state != GameState.MAZE_MOVE) { // si on n'est pas au bon état
+        if (this.getState() != GameState.MAZE_MOVE) { // si on n'est pas au bon état
             throw new IllegalStateException("Le jeu n'est pas en état MAZE_MOVE");
         }
         maze.move(move); // exécute le déplacement
         computePaths(); // recalcule les chemins accessibles
-        this.state = GameState.PLAYER_MOVE; // avance le staut à l'état de déplacement du joueur
+        this.state.setValue(GameState.PLAYER_MOVE); // passe l'état au déplacement du joueur
     }
 
     // déplacer le joueur vers une tuile (PLAYER_MOVE)
     public void movePlayer(Tile tile) {
 
-        if (this.state != GameState.PLAYER_MOVE) { // si on n'est pas au bon état du jeu
+        if (this.getState() != GameState.PLAYER_MOVE) { // si on n'est pas au bon état du jeu
             throw new IllegalStateException("Le jeu n'est pas en état PLAYER_MOVE!"); // erreur
         }
 
-        if (!paths.isAccessible(tile)) { // si la tuile n'est pas accessible par un chemi,
+        if (!paths.getValue().isAccessible(tile)) { // si la tuile n'est pas accessible par un chemi,
             throw new IllegalArgumentException("La tuile n'est pas accessible!"); // erreur
         }
 
         // retire le joueur de sa tuile actuelle
-        Tile currentTile = maze.getTile(currentPlayer);
-        currentTile.removePlayer(currentPlayer);
+        Tile currentTile = maze.getTile(currentPlayer.getValue());
+        currentTile.removePlayer(currentPlayer.getValue());
 
         // place le joueur sur la nouvelle tuile
-        tile.addPlayer(currentPlayer);
+        tile.addPlayer(currentPlayer.getValue());
 
         // défausse la première carte de sa pioche si il se retrouve sur le trésor qu'il cherche
-        Deck deck = currentPlayer.getDeck(); // récupère le deck du joueur
+        Deck deck = currentPlayer.getValue().getDeck(); // récupère le deck du joueur
         List<Integer> drawPile = deck.getDrawPile(); // récupère la pioche associée
         if (!drawPile.isEmpty()) { // si il lui reste des trésors à trouver
             Content content = tile.getContent(); // récupère le contenu de la tuile courante
@@ -173,10 +189,10 @@ public class Game {
         }
 
         // vérifie si le joueur a gagné
-        if (hasWon(currentPlayer)) {
-            this.state = GameState.GAME_OVER; // si il a gagné, fin du jeu
+        if (hasWon(currentPlayer.getValue())) {
+            this.state.setValue(GameState.GAME_OVER); // si il a gagné, fin du jeu
         } else {
-            this.state = GameState.TURN_END; // sinon le tour se termine
+            this.state.setValue(GameState.TURN_END); // sinon le tour se termine
         }
     }
 
@@ -197,26 +213,30 @@ public class Game {
 
     // la fin d'un tour (END_TURN)
     public void endTurn() {
-        if (this.state != GameState.TURN_END) { // si on n'est pas au bon état
+        if (this.getState() != GameState.TURN_END) { // si on n'est pas au bon état
             throw new IllegalStateException("Le jeu n'est pas en état TURN_END");
         }
 
         // passe au joueur suivant
-        int nextIndex = (players.indexOf(currentPlayer) + 1) % players.size(); // calcule index+1 modulo 4
-        this.currentPlayer = players.get(nextIndex); // met à jour le joueur courant
+        int nextIndex = (players.indexOf(currentPlayer.getValue()) + 1) % players.size(); // calcule index+1 modulo 4
+        this.currentPlayer.setValue(players.get(nextIndex)); // met à jour le joueur courant
         computePaths(); // recalcule les chemins accessibles
 
-        this.state = GameState.MAZE_MOVE; // le joueur courant devra faire un mouvement ensuite (état MAZE_MOVE)
+        this.state.setValue(GameState.MAZE_MOVE); // le joueur courant devra faire un mouvement ensuite (état MAZE_MOVE)
+    }
+
+    public ObservableValue<Paths<Tile>> pathsProperty(){
+        return this.paths.asReadOnly();
     }
 
     public Paths<Tile> getPaths() {
-        return this.paths;
+        return this.paths.getValue();
     }
 
     // calcule l'ensemble des chemins accessibles du joueur courant
     private void computePaths() {
         Graph<Tile> graph = MazeToGraphAdapter.getGraph(maze); // convertit le labyrinthe en graphe
-        Tile currentTile = maze.getTile(currentPlayer); // récupère la tuile du joueur courant
-        this.paths = new Paths<>(graph, currentTile); // calcule l'ensemble des chemins depuis cette tuile
+        Tile currentTile = maze.getTile(currentPlayer.getValue()); // récupère la tuile du joueur courant
+        this.paths.setValue(new Paths<>(graph, currentTile)); // calcule l'ensemble des chemins depuis cette tuile
     }
 }

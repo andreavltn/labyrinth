@@ -5,7 +5,6 @@ import labyrinth.util.collection.Grid;
 import labyrinth.util.collection.Position;
 import labyrinth.util.observable.ObservableValue;
 import labyrinth.util.observable.SimpleObservableValue;
-
 import java.util.*;
 
 public class Maze {
