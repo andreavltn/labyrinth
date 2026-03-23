@@ -1,17 +1,20 @@
 package labyrinth.model;
 
+import labyrinth.util.collection.ArrayGrid;
 import labyrinth.util.collection.Grid;
 import labyrinth.util.collection.Position;
+import labyrinth.util.observable.ObservableValue;
+import labyrinth.util.observable.SimpleObservableValue;
 
 import java.util.*;
 
 public class Maze {
 
-    private final Grid<Tile> grid; // la grille de tuiles du jeu
-    private Tile extraTile; // la tuile supplémentaire
+    private final Grid<SimpleObservableValue<Tile>> grid; // la grille de tuiles du jeu
+    private final SimpleObservableValue<Tile> extraTile; // la tuile supplémentaire
     private final Set<Integer> fixedRows; // indices des lignes fixes
     private final Set<Integer> fixedColumns; // indices des colonnes fixes
-    private MazeMove forbiddenMove; // le mouvement interdit du tour en cours
+    private final SimpleObservableValue<MazeMove> forbiddenMove; // le mouvement interdit du tour en cours
 
     public Maze(Grid<Tile> tiles, Tile extraTile, Set<Integer> fixedRows, Set<Integer> fixedColumns) {
 
@@ -85,22 +88,35 @@ public class Maze {
         }
 
         // sinon tout va bien
-        this.grid = tiles;
-        this.extraTile = extraTile;
+
+        // initialisation de la grille observable
+        this.grid = new ArrayGrid<>(tiles.getWidth(), tiles.getHeight());
+        for (int y = 0; y < tiles.getHeight(); y++) {
+            for (int x = 0; x < tiles.getWidth(); x++) {
+                this.grid.set(x, y, new SimpleObservableValue<>(tiles.get(x, y)));
+            }
+        }
+
+        this.extraTile = new SimpleObservableValue<>(extraTile);
+        this.forbiddenMove = new SimpleObservableValue<>(null);
         this.fixedRows = new HashSet<>(fixedRows);
         this.fixedColumns = new HashSet<>(fixedColumns);
     }
 
-    public Grid<Tile> getTiles() {
-        return this.grid;
+    public Grid<ObservableValue<Tile>> getObservableTiles() {
+        return grid.map(SimpleObservableValue::asReadOnly);
     }
 
-    public Position getPosition(Tile tile){
+    public Grid<Tile> getTiles() {
+        return grid.map(SimpleObservableValue::getValue);
+    }
+
+    public Position getPosition(Tile tile) {
 
         for (int y = 0; y < grid.getHeight(); y++) { // parcours de chaque tuile de la grille
             for (int x = 0; x < grid.getWidth(); x++) {
-
-                if (grid.get(x, y).equals(tile)) { // si la tuile (x,y) correspond à celle en paramètre
+                Tile tileXY = grid.get(x, y).getValue();
+                if (tileXY.equals(tile)) { // si la tuile (x,y) correspond à celle en paramètre
                     return new Position(x, y); // renvoie sa position
                 }
             }
@@ -117,15 +133,19 @@ public class Maze {
         return Set.copyOf(this.fixedColumns); // immutable
     }
 
+    public ObservableValue<Tile> extraTileProperty() {
+        return this.extraTile.asReadOnly();
+    }
+
     public Tile getExtraTile() {
-        return this.extraTile;
+        return this.extraTile.getValue();
     }
 
     public Tile getTile(Player player) {
 
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                Tile tile = grid.get(x, y);
+                Tile tile = grid.get(x, y).getValue();
                 if (tile.getPlayers().contains(player)) {
                     return tile;
                 }
@@ -134,12 +154,12 @@ public class Maze {
         return null;
     }
 
-    public Tile getStartingTile(Player player){
+    public Tile getStartingTile(Player player) {
 
         // pour chaque tuile du jeu
         for (int x = 0; x < grid.getWidth(); x++) {
             for (int y = 0; y < grid.getHeight(); y++) {
-                Tile tile = grid.get(x, y); // récupère la tuile
+                Tile tile = grid.get(x, y).getValue(); // récupère la tuile
                 Content contenu = tile.getContent(); // récupère son contenu
 
                 // si le contenu de la tuile est la position de départ du joueur recherché
@@ -151,15 +171,19 @@ public class Maze {
         return null;
     }
 
+    public ObservableValue<MazeMove> forbiddenMoveProperty() {
+        return this.forbiddenMove.asReadOnly();
+    }
+
     public MazeMove getForbiddenMove() {
-        return this.forbiddenMove;
+        return this.forbiddenMove.getValue();
     }
 
     // un déplacement du jeu (le joueur pose une tuile sur un slot)
     public void move(MazeMove move) {
 
         // vérification mouvement interdit
-        if (move.equals(forbiddenMove)) {
+        if (move.equals(forbiddenMove.getValue())) {
             throw new IllegalArgumentException("Ce mouvement est interdit");
         }
 
@@ -171,45 +195,45 @@ public class Maze {
         switch (direction) {
 
             case DOWN -> { // si on déplace vers le bas
-                Tile exitTile = grid.get(index, grid.getHeight() - 1); // récupère la tuile tout en bas de la col
+                Tile exitTile = grid.get(index, grid.getHeight() - 1).getValue(); // récupère la tuile tout en bas de la col
                 for (int y = grid.getHeight() - 1; y > 0; y--) { // pour chaque tuile de la colonne (
                     grid.set(index, y, grid.get(index, y - 1)); // déplace d'une case vers le bas
                 }
                 grid.set(index, 0, extraTile); // place la tuile en haut de la col
-                this.extraTile = exitTile; // met à jour la tuile supplémentaire
+                this.extraTile.setValue(exitTile); // met à jour la tuile supplémentaire
             }
 
             case UP -> {
                 // idem ensuite dans toutes les directions
-                Tile exitTile = grid.get(index, 0);
+                Tile exitTile = grid.get(index, 0).getValue();
                 for (int y = 0; y < grid.getHeight() - 1; y++) {
                     grid.set(index, y, grid.get(index, y + 1));
                 }
                 grid.set(index, grid.getHeight() - 1, extraTile);
-                extraTile = exitTile;
+                extraTile.setValue(exitTile);
             }
 
             case RIGHT -> {
-                Tile exitTile = grid.get(grid.getWidth() - 1, index);
+                Tile exitTile = grid.get(grid.getWidth() - 1, index).getValue();
                 for (int x = grid.getWidth() - 1; x > 0; x--) {
                     grid.set(x, index, grid.get(x - 1, index));
                 }
                 grid.set(0, index, extraTile);
-                extraTile = exitTile;
+                extraTile.setValue(exitTile);
             }
 
             case LEFT -> {
-                Tile exitTile = grid.get(0, index);
+                Tile exitTile = grid.get(0, index).getValue();
                 for (int x = 0; x < grid.getWidth() - 1; x++) {
                     grid.set(x, index, grid.get(x + 1, index));
                 }
                 grid.set(grid.getWidth() - 1, index, extraTile);
-                extraTile = exitTile;
+                extraTile .setValue(exitTile);
             }
         }
 
         // stocke le mouvement interdit pour le prochain tour
-        this.forbiddenMove = move.getOpposite();
+        this.forbiddenMove.setValue(move.getOpposite());
     }
 
 }
