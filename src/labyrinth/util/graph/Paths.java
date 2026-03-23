@@ -16,17 +16,17 @@ public class Paths<T> {
         // blanc = jamais visité
         // gris = visité une fois
 
-        Queue<T> gris = new LinkedList<>(); // pile des gris
+        Queue<T> gris = new LinkedList<>(); // file des gris
         gris.add(from); // empile la racine
 
-        // tant que la pile n'est pas vide
+        // tant que la file n'est pas vide
         while (!gris.isEmpty()) {
-            T node = gris.poll(); // dépile le sommet des gris
+            T node = gris.poll(); // dépile le dernier sommet entré des gris
 
             // pour chaque successeur blanc
             for (T successor : graph.getSuccessors(node)) {
                 if (!predecessors.containsKey(successor)) {
-                    predecessors.put(successor, node); // lien noeud -> prédécesseur dans la map
+                    predecessors.put(successor, node); // ajoute le lien noeud -> prédécesseur dans la map
                     gris.add(successor); // ajoute aux gris
                 }
             }
