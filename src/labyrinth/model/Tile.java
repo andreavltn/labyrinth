@@ -4,7 +4,6 @@ import labyrinth.util.observable.ObservableValue;
 import labyrinth.util.observable.ObservableList;
 import labyrinth.util.observable.SimpleObservableList;
 import labyrinth.util.observable.SimpleObservableValue;
-
 import java.util.*;
 
 public class Tile {

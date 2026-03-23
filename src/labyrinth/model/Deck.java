@@ -1,30 +1,40 @@
 package labyrinth.model;
 
-import java.util.ArrayList;
 import java.util.List;
+import labyrinth.util.observable.ObservableList;
+import labyrinth.util.observable.SimpleObservableList;
 
 // les cartes trésor d'un joueur
 public class Deck {
 
-    private List<Integer> drawPile; // les trésors à trouver (pioche)
-    private List<Integer> discardPile; // les trésors déjà trouvés (défausse)
+    private final SimpleObservableList<Integer> drawPile; // les trésors à trouver (pioche)
+    private final SimpleObservableList<Integer> discardPile; // les trésors déjà trouvés (défausse)
 
     public Deck() {
-        this.drawPile = new ArrayList<Integer>();
-        this.discardPile = new ArrayList<Integer>();
+        this.drawPile = new SimpleObservableList<>();
+        this.discardPile = new SimpleObservableList<>();
     }
 
-    public List<Integer> getDrawPile() {
+    public ObservableList<Integer> drawPileProperty(){
+        return this.drawPile;
+    }
+
+    public List<Integer> getDrawPile(){
         return drawPile;
     }
 
-    public List<Integer> getDiscardPile() {
+    public ObservableList<Integer> discardPileProperty(){
+        return this.discardPile;
+    }
+
+    public List<Integer> getDiscardPile(){
         return discardPile;
     }
 
-    public void init(List<Integer> treasures) {
-        this.drawPile = new ArrayList<>(treasures); // pioche = une liste de trésors
-        this.discardPile = new ArrayList<>(); // défausse = une liste vide
+    public void init(List<Integer> treasures){
+        this.drawPile.clear(); // pioche vide
+        this.drawPile.addAll(treasures); // y ajoute les trésors
+        this.discardPile.clear(); // défausse vide
     }
 
     // place la première carte de la pioche dans la défausse (trésor trouvé)
