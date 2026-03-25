@@ -64,11 +64,13 @@ public class BaseGameViewModel implements GameViewModel {
     @Override // démarre une partie (ouvre les slots + initialise le jeu)
     public void startGame() {
 
-        // ouvre les slots actifs
-        for (PlayerViewModel player : players) {
-            BasePlayerViewModel base = (BasePlayerViewModel) player;
-            if (base.activeProperty().getValue()) {
-                // déjà ouvert via addPlayer()
+        // ouvre les slots qui ne sont pas encore ouverts (A FIX CAR C'EST PAS CE QU'ON VEUT)
+        // POUR L'INSTANT CA FORCE 4 JOUEURS QUOI QU'IL ARRIVE)
+        for (int i = 0; i < 4; i++) {
+            try {
+                game.getSlot(i).open(); // essaye de l'ouvrir
+            } catch (Exception ignored) {
+                // sinon ne fait rien
             }
         }
 
