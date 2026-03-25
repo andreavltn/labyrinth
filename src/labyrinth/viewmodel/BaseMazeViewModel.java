@@ -56,6 +56,12 @@ public class BaseMazeViewModel implements MazeViewModel {
         // écoute les changements d'état pour les cellules et les slots
         state.addListener((obs, old, newState) -> {
 
+            // si c'est la fin du tour
+            if (newState == GameState.TURN_END) {
+                game.endTurn(); // fin de tour
+                return; // redéclenche le listener
+            }
+
             // slotsActive = true si on est en MAZE_MOVE, false sinon
             boolean slotsActive = newState == GameState.MAZE_MOVE;
 
@@ -84,6 +90,23 @@ public class BaseMazeViewModel implements MazeViewModel {
                 }
             }
         });
+
+        // état initial au lancement du jeu
+        GameState initialState = game.getState();
+
+        // tous les slots sont actifs en MAZE_MOVE
+        boolean slotsActive = initialState == GameState.MAZE_MOVE;
+        for (SlotViewModel slot : slots) {
+            ((BaseSlotViewModel) slot).setActive(slotsActive);
+        }
+
+        // toutes les cellules sont actives en PLAYER_MOVE
+        boolean cellsActive = initialState == GameState.PLAYER_MOVE;
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                cells.get(x, y).setActive(cellsActive);
+            }
+        }
     }
 
     @Override // renvoie la grille des cellules du plateau
