@@ -7,6 +7,7 @@ import javafx.scene.layout.StackPane;
 import labyrinth.model.Direction;
 import labyrinth.model.TileKind;
 import labyrinth.viewmodel.TileViewModel;
+import java.util.List;
 
 // la vue d'une tuile
 public class TileView extends StackPane {
@@ -68,11 +69,28 @@ public class TileView extends StackPane {
         playerImage.setFitHeight(30);
 
         // état de base
-        updatePlayerImage(playerImage, viewModel.playersIdProperty().getValue());
+        updatePlayerImage(
+                playerImage,
+                viewModel.playersIdProperty().getValue(),
+                viewModel.currentPlayerIdProperty().getValue()
+        );
 
         // état si changement
         viewModel.playersIdProperty().addListener((obs, old, players) -> {
-            updatePlayerImage(playerImage, players);
+            updatePlayerImage(
+                    playerImage,
+                    players,
+                    viewModel.currentPlayerIdProperty().getValue()
+            );
+        });
+
+        // état si changement du joueur courant
+        viewModel.currentPlayerIdProperty().addListener((obs, old, currentPlayerId) -> {
+            updatePlayerImage(
+                    playerImage,
+                    viewModel.playersIdProperty().getValue(),
+                    currentPlayerId
+            );
         });
 
         // empile dans l'ordre : image -> position de départ -> trésor -> pion
@@ -94,11 +112,22 @@ public class TileView extends StackPane {
     }
 
     // met à jour l'affichage de l'image (ou non) sur une tuile
-    private void updatePlayerImage(ImageView imageView, java.util.List<Integer> players) {
+    private void updatePlayerImage(ImageView imageView, List<Integer> players, Integer currentPlayerId) {
         if (players.isEmpty()) { // si il n'y a pas de joueur sur la tuile
             imageView.setImage(null); // pas d'image
+            imageView.setStyle("");
         } else { // sinon il y a au moins un joueur sur la tuile
-            int id = players.getFirst(); // récupère l'idée du premier joueur arrivé sur la tuile
+            int id;
+
+            // si le joueur courant est sur la tuile, on l'affiche en priorité
+            if (currentPlayerId != null && players.contains(currentPlayerId)) {
+                id = currentPlayerId;
+                imageView.setStyle("-fx-effect: dropshadow(gaussian, gold, 10, 0.8, 0, 0);");
+            } else {
+                id = players.getFirst(); // récupère l'id du premier joueur arrivé sur la tuile
+                imageView.setStyle("");
+            }
+
             imageView.setImage(new Image("/img/player" + (id + 1) + ".png")); // affiche son pion
         }
     }
