@@ -6,12 +6,12 @@ import labyrinth.model.*;
 
 public class BaseCellViewModel implements CellViewModel {
 
-    private final Tile tile;
+    private final labyrinth.util.observable.ObservableValue<Tile> tile;
     private final BaseTileViewModel tileViewModel;
     private final SimpleBooleanProperty active = new SimpleBooleanProperty(false);
     private final Game game;
 
-    public BaseCellViewModel(Tile tile, Game game, int currentPlayerId) {
+    public BaseCellViewModel(labyrinth.util.observable.ObservableValue<Tile> tile, Game game, int currentPlayerId) {
         this.tile = tile;
         this.game = game;
         this.tileViewModel = new BaseTileViewModel(tile, currentPlayerId);
@@ -29,7 +29,7 @@ public class BaseCellViewModel implements CellViewModel {
 
     @Override // appelée quand le joueur clique sur la cellule pour y déplacer son pion
     public void movePlayer() {
-        game.movePlayer(tile);
+        game.movePlayer(tile.getValue());
     }
 
     public void setActive(boolean value) {
