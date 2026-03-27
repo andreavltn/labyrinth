@@ -190,44 +190,81 @@ public class Maze {
         Direction direction = move.direction();
         int index = move.index();
 
+        // garde une référence vers la tuile qu'on insère
+        Tile insertedTile = extraTile.getValue();
+
         // déplacement
         switch (direction) {
 
             case DOWN -> { // si on déplace vers le bas
                 Tile exitTile = grid.get(index, grid.getHeight() - 1).getValue(); // récupère la tuile tout en bas de la col
-                for (int y = grid.getHeight() - 1; y > 0; y--) { // pour chaque tuile de la colonne (
-                    grid.set(index, y, grid.get(index, y - 1)); // déplace d'une case vers le bas
+
+                // les joueurs présents sur la tuile expulsée réapparaissent sur la tuile insérée
+                List<Player> movedPlayers = new ArrayList<>(exitTile.getPlayers());
+
+                for (int y = grid.getHeight() - 1; y > 0; y--) { // pour chaque tuile de la colonne
+                    grid.get(index, y).setValue(grid.get(index, y - 1).getValue()); // déplace d'une case vers le bas
                 }
-                grid.set(index, 0, extraTile); // place la tuile en haut de la col
+
+                grid.get(index, 0).setValue(insertedTile); // place la tuile en haut de la col
                 this.extraTile.setValue(exitTile); // met à jour la tuile supplémentaire
+
+                for (Player player : movedPlayers) {
+                    exitTile.removePlayer(player);
+                    insertedTile.addPlayer(player);
+                }
             }
 
             case UP -> {
                 // idem ensuite dans toutes les directions
                 Tile exitTile = grid.get(index, 0).getValue();
+                List<Player> movedPlayers = new ArrayList<>(exitTile.getPlayers());
+
                 for (int y = 0; y < grid.getHeight() - 1; y++) {
-                    grid.set(index, y, grid.get(index, y + 1));
+                    grid.get(index, y).setValue(grid.get(index, y + 1).getValue());
                 }
-                grid.set(index, grid.getHeight() - 1, extraTile);
+
+                grid.get(index, grid.getHeight() - 1).setValue(insertedTile);
                 extraTile.setValue(exitTile);
+
+                for (Player player : movedPlayers) {
+                    exitTile.removePlayer(player);
+                    insertedTile.addPlayer(player);
+                }
             }
 
             case RIGHT -> {
                 Tile exitTile = grid.get(grid.getWidth() - 1, index).getValue();
+                List<Player> movedPlayers = new ArrayList<>(exitTile.getPlayers());
+
                 for (int x = grid.getWidth() - 1; x > 0; x--) {
-                    grid.set(x, index, grid.get(x - 1, index));
+                    grid.get(x, index).setValue(grid.get(x - 1, index).getValue());
                 }
-                grid.set(0, index, extraTile);
+
+                grid.get(0, index).setValue(insertedTile);
                 extraTile.setValue(exitTile);
+
+                for (Player player : movedPlayers) {
+                    exitTile.removePlayer(player);
+                    insertedTile.addPlayer(player);
+                }
             }
 
             case LEFT -> {
                 Tile exitTile = grid.get(0, index).getValue();
+                List<Player> movedPlayers = new ArrayList<>(exitTile.getPlayers());
+
                 for (int x = 0; x < grid.getWidth() - 1; x++) {
-                    grid.set(x, index, grid.get(x + 1, index));
+                    grid.get(x, index).setValue(grid.get(x + 1, index).getValue());
                 }
-                grid.set(grid.getWidth() - 1, index, extraTile);
-                extraTile .setValue(exitTile);
+
+                grid.get(grid.getWidth() - 1, index).setValue(insertedTile);
+                extraTile.setValue(exitTile);
+
+                for (Player player : movedPlayers) {
+                    exitTile.removePlayer(player);
+                    insertedTile.addPlayer(player);
+                }
             }
         }
 
