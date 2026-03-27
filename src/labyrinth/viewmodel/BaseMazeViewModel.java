@@ -23,7 +23,7 @@ public class BaseMazeViewModel implements MazeViewModel {
 
         // récupère les données du jeu
         Maze maze = game.getMaze();
-        Grid<Tile> grid = maze.getTiles();
+        Grid<labyrinth.util.observable.ObservableValue<Tile>> grid = maze.getObservableTiles();
 
         int currentPlayerId = game.getCurrentPlayer().getIndex();
 
@@ -36,7 +36,7 @@ public class BaseMazeViewModel implements MazeViewModel {
         }
 
         // tuile supplémentaire
-        this.extraTileViewModel = new BaseTileViewModel(maze.getExtraTile(), currentPlayerId);
+        this.extraTileViewModel = new BaseTileViewModel(maze.extraTileProperty(), currentPlayerId);
 
         // ajoute les slots sur les colonnes impaires (1 3 5)
         for (int x = 1; x < grid.getWidth(); x += 2) {
@@ -88,6 +88,7 @@ public class BaseMazeViewModel implements MazeViewModel {
                         cells.get(x, y).setCurrentPlayerId(cpId);
                     }
                 }
+                extraTileViewModel.setCurrentPlayerId(cpId);
             }
         });
 
