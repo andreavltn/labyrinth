@@ -1,5 +1,6 @@
 package labyrinth.viewmodel;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import labyrinth.model.*;
@@ -14,6 +15,7 @@ public class BaseGameViewModel implements GameViewModel {
     private final ObservableValue<GameState> state;
     private final ObservableValue<Integer> currentPlayerId;
     private final List<PlayerViewModel> players = new ArrayList<>();
+    private final SimpleBooleanProperty canStart = new SimpleBooleanProperty(false);
     private BaseMazeViewModel mazeViewModel;
 
     public BaseGameViewModel() {
@@ -32,8 +34,30 @@ public class BaseGameViewModel implements GameViewModel {
 
         // crée les 4 slots pour les joueurs
         for (int i = 0; i < 4; i++) {
-            players.add(new BasePlayerViewModel(game.getSlot(i), game));
+            PlayerViewModel playerViewModel = new BasePlayerViewModel(game.getSlot(i), game);
+            players.add(playerViewModel);
+
+            // met à jour la possibilité de lancer quand un slot devient actif/inactif
+            playerViewModel.activeProperty().addListener((obs, old, active) -> updateCanStart());
         }
+
+        // met aussi à jour si l'état du jeu change
+        this.state.addListener((obs, old, newState) -> updateCanStart());
+
+        updateCanStart();
+    }
+
+    private void updateCanStart() {
+        int activePlayers = 0;
+
+        for (PlayerViewModel player : players) {
+            if (Boolean.TRUE.equals(player.activeProperty().getValue())) {
+                activePlayers++;
+            }
+        }
+
+        // on peut démarrer seulement en SETUP avec au moins 2 joueurs
+        canStart.set(game.getState() == GameState.SETUP && activePlayers >= 2);
     }
 
     @Override // renvoie le titre de la fenêtre
@@ -61,17 +85,17 @@ public class BaseGameViewModel implements GameViewModel {
         return state;
     }
 
-    @Override // démarre une partie (ouvre les slots + initialise le jeu)
+    @Override // true si on peut démarrer la partie
+    public ObservableValue<Boolean> canStartProperty() {
+        return canStart;
+    }
+
+    @Override // démarre une partie avec les slots actuellement ouverts
     public void startGame() {
 
-        // ouvre les slots qui ne sont pas encore ouverts (A FIX CAR C'EST PAS CE QU'ON VEUT)
-        // POUR L'INSTANT CA FORCE 4 JOUEURS QUOI QU'IL ARRIVE)
-        for (int i = 0; i < 4; i++) {
-            try {
-                game.getSlot(i).open(); // essaye de l'ouvrir
-            } catch (Exception ignored) {
-                // sinon ne fait rien
-            }
+        // ne démarre pas si il n'y a pas assez de joueurs
+        if (!canStart.get()) {
+            return;
         }
 
         // initialise le jeu
@@ -79,5 +103,7 @@ public class BaseGameViewModel implements GameViewModel {
 
         // crée le MazeViewModel une fois le jeu initialisé
         this.mazeViewModel = new BaseMazeViewModel(game);
+
+        updateCanStart();
     }
 }
