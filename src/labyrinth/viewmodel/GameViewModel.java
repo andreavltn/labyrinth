@@ -11,5 +11,6 @@ public interface GameViewModel {
     ObservableValue<Integer> currentPlayerIdProperty(); // id du joueur dont c'est le tour
     List<PlayerViewModel> getPlayersViewModel(); // renvoie la liste des 4 emplacements de joueur
     ObservableValue<GameState> stateProperty(); // l'état actuel du jeu (i.e GameState)
+    ObservableValue<Boolean> canStartProperty(); // true si on peut démarrer la partie
     void startGame(); // démarre la partie (SETUP -> MOVE_MAZE)
 }
