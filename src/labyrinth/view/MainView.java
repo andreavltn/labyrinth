@@ -13,7 +13,13 @@ public class MainView extends StackPane {
         // bouton start affiché dans l'état SETUP
         Button btnStart = new Button("Start");
         btnStart.setOnAction(e -> viewModel.startGame()); // lance le jeu au clic
+        btnStart.setDisable(!Boolean.TRUE.equals(viewModel.canStartProperty().getValue()));
         getChildren().add(btnStart);
+
+        // met à jour l'activation du bouton start
+        viewModel.canStartProperty().addListener((obs, old, canStart) -> {
+            btnStart.setDisable(!Boolean.TRUE.equals(canStart));
+        });
 
         // écoute les changements d'état
         viewModel.stateProperty().addListener((obs, old, newState) -> {
