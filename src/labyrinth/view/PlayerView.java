@@ -46,14 +46,26 @@ public class PlayerView extends VBox {
         Button btnRemove = new Button("Retirer");
         btnRemove.setOnAction(e -> viewModel.removePlayer());
 
-        // valeur de base
-        btnAdd.setDisable(viewModel.lockedProperty().getValue());
-        btnRemove.setDisable(viewModel.lockedProperty().getValue());
+        // met à jour l'état des boutons
+        Runnable refreshButtons = () -> {
+            boolean active = Boolean.TRUE.equals(viewModel.activeProperty().getValue());
+            boolean locked = Boolean.TRUE.equals(viewModel.lockedProperty().getValue());
 
-        // désactive les boutons si verrouillé
+            btnAdd.setDisable(locked || active);
+            btnRemove.setDisable(locked || !active);
+        };
+
+        // valeur de base
+        refreshButtons.run();
+
+        // met à jour si le slot devient actif/inactif
+        viewModel.activeProperty().addListener((obs, old, active) -> {
+            refreshButtons.run();
+        });
+
+        // met à jour si verrouillé
         viewModel.lockedProperty().addListener((obs, old, locked) -> {
-            btnAdd.setDisable(locked);
-            btnRemove.setDisable(locked);
+            refreshButtons.run();
         });
 
         // boite des boutons
