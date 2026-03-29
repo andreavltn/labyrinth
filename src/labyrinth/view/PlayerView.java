@@ -26,11 +26,13 @@ public class PlayerView extends VBox {
         playerImage.setImage(new Image("/img/default-user.png")); // image par défaut
 
         // label avec l'id du joueur + son statut
-        Label label = new Label("Joueur " + (id + 1) + " | Inactif");
+        boolean isActive = Boolean.TRUE.equals(viewModel.activeProperty().getValue());
+        Label label = new Label("Joueur " + (id + 1) + (isActive ? " | Actif" : " | Inactif"));
 
         // met à jour le statut quand l'état change
         viewModel.activeProperty().addListener((obs, old, active) -> {
-            label.setText("Joueur " + (id + 1) + (active ? " | Actif" : " | Inactif")); // actif/inactif
+            boolean activeNow = Boolean.TRUE.equals(active);
+            label.setText("Joueur " + (id + 1) + (activeNow ? " | Actif" : " | Inactif")); // actif/inactif
         });
 
         // 10px d'espace entre l'image et le nom + statut
