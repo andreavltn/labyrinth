@@ -1,5 +1,7 @@
 package labyrinth.model;
 
+import labyrinth.service.serialization.GameDTO;
+import labyrinth.service.serialization.PlayerDTO;
 import labyrinth.util.collection.Grid;
 import labyrinth.util.graph.Paths;
 import labyrinth.util.graph.Graph;
@@ -238,5 +240,76 @@ public class Game {
         Graph<Tile> graph = MazeToGraphAdapter.getGraph(maze); // convertit le labyrinthe en graphe
         Tile currentTile = maze.getTile(currentPlayer.getValue()); // récupère la tuile du joueur courant
         this.paths.setValue(new Paths<>(graph, currentTile)); // calcule l'ensemble des chemins depuis cette tuile
+    }
+
+    // hydrate le jeu (l'instance courante) à partir d'un GameDTO
+    public void updateFrom(GameDTO dto) {
+
+        // 1) repasse en état SETUP, sans vider les decks
+        this.state.setValue(GameState.SETUP); // change l'état
+        this.players.clear(); // vide les joueurs
+        this.currentPlayer.setValue(null); // met à null le joueurCourant
+        this.paths.setValue(null); // réinitialise les chemins
+
+        // 2) joueurs et slots
+        List<PlayerDTO> playerDTOs = dto.getPlayers(); // récupère les joueurs du DTO
+
+        // pour chaque indice i<4
+        for (int i = 0; i < 4; i++) {
+            Slot slot = getSlot(i); // récupère le slot d'indice i
+            PlayerDTO pDto = playerDTOs.get(i); // récupère le joueurDTO d'indice i
+
+            // si le joueur existe
+            if (pDto != null) {
+
+                // alors le slot doit être ouvert
+                if (slot.getPlayer() == null) {
+                    slot.open(); // donc crée un nouveau joueur
+                }
+
+                // hydrate le joueur
+                slot.getPlayer().updateFrom(pDto);
+
+                // le rajoute au slot
+                players.add(slot.getPlayer());
+            }
+
+            // sinon il n'existe pas
+            else {
+
+                // ferme le slot
+                if (slot.getPlayer() != null) {
+                    slot.close();
+                }
+            }
+        }
+
+        // 3) recréer le labyrinthe
+        if (dto.getMaze() != null) {
+            this.maze = Maze.from(dto.getMaze(), players);
+        } else {
+            this.maze = null;
+        }
+
+        // 4) restaurer le joueurCourant
+        int cpIndex = dto.getCurrentPlayerIndex(); // récupère l'indice stocké
+        if (cpIndex >= 0) { // si il est assigné à l'indice d'un joueur
+
+            // parcours des joueurs
+            for (Player p : players) {
+                if (p.getIndex() == cpIndex) { // si l'indice correspond à celui du joueur
+                    this.currentPlayer.setValue(p); // met à jour le joueur courant
+                    break;
+                }
+            }
+        }
+
+        // 5) restaurer l'état du jeu
+        this.state.setValue(dto.getState());
+
+        // 6) recalcule les chemins du joueurCourant (si il existe)
+        if (this.maze != null && this.currentPlayer.getValue() != null) {
+            computePaths(); // calcul des chemins
+        }
     }
 }

@@ -1,5 +1,7 @@
 package labyrinth.model;
 
+import labyrinth.service.serialization.MazeDTO;
+import labyrinth.service.serialization.TileDTO;
 import labyrinth.util.collection.ArrayGrid;
 import labyrinth.util.collection.Grid;
 import labyrinth.util.collection.Position;
@@ -270,6 +272,47 @@ public class Maze {
 
         // stocke le mouvement interdit pour le prochain tour
         this.forbiddenMove.setValue(move.getOpposite());
+    }
+
+    // recrée une instance de Maze depuis les données du DTO
+    public static Maze from(MazeDTO dto, List<Player> players) {
+
+        Grid<TileDTO> dtoCells = dto.getTiles(); // récupère les tuiles du DTO
+        int w = dtoCells.getWidth(); // récupère la largeur de la grille
+        int h = dtoCells.getHeight(); // et la hauteur
+
+        // reconstruction de la grille de tuiles
+        Grid<Tile> grid = new ArrayGrid<>(w, h); // création d'une grille vide
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+
+                // ajout des tuiles via Tile.from(TileDTO, players) -> nouvelles instances
+                grid.set(x, y, Tile.from(dtoCells.get(x, y), players));
+            }
+        }
+
+        // recrée aussi la tuile supplémentaire via la même méthode
+        Tile extraTile = Tile.from(dto.getExtraTile(), players);
+
+        // recrée les indices des lignes/colonnes fixes
+        Set<Integer> fixedRows = new HashSet<>(dto.getFixedRows());
+        Set<Integer> fixedColumns = new HashSet<>(dto.getFixedColumns());
+
+        // création du Maze
+        Maze maze = new Maze(grid, extraTile, fixedRows, fixedColumns);
+
+        // récupère le mouvement interdit
+        if (dto.getForbiddenMove() != null) { // si il n'est pas nul
+            maze.setForbiddenMove(dto.getForbiddenMove()); // l'ajoute au nouveau maze
+        }
+
+        return maze; // renvoie le nouveau maze
+    }
+
+    // change le mouvement interdit, utilisé uniquement pour la méthode
+    // Maze.from() juste au dessus, c'est une méthode privée
+    private void setForbiddenMove(MazeMove move) {
+        this.forbiddenMove.setValue(move);
     }
 
 }

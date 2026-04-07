@@ -3,6 +3,7 @@ package labyrinth.model;
 import java.util.List;
 import labyrinth.util.observable.ObservableList;
 import labyrinth.util.observable.SimpleObservableList;
+import labyrinth.service.serialization.DeckDTO;
 
 // les cartes trésor d'un joueur
 public class Deck {
@@ -41,5 +42,14 @@ public class Deck {
     public void discard() {
         int treasure = this.drawPile.removeFirst(); // retire la première carte du paquet
         this.discardPile.add(treasure); // ajout à la défausse
+    }
+
+    // hydratation du Deck à partir d'un DeckDTO
+    public void updateFrom(DeckDTO dto) {
+        this.drawPile.clear(); // vide la pile
+        this.drawPile.addAll(dto.getDrawPile()); // rajoute les cartes du DTO
+
+        this.discardPile.clear(); // vide la défausse
+        this.discardPile.addAll(dto.getDiscardPile()); // rajoute les cartes du DTO
     }
 }

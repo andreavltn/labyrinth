@@ -1,5 +1,6 @@
 package labyrinth.model;
 
+import labyrinth.service.serialization.TileDTO;
 import labyrinth.util.observable.ObservableValue;
 import labyrinth.util.observable.ObservableList;
 import labyrinth.util.observable.SimpleObservableList;
@@ -86,5 +87,26 @@ public class Tile {
     // retire le joueur "player" de la tuile
     public void removePlayer(Player player){
         this.players.remove(player);
+    }
+
+    // recrée une instance de Tile depuis les données du DTO
+    public static Tile from(TileDTO dto, List<Player> players) {
+
+        // recrée la tuile avec les données du DTO
+        Tile tile = new Tile(dto.getKind(), dto.getContent(), dto.getOrientation());
+
+        // pour chaque indice de joueur du DTO
+        for (int index : dto.getPlayers()) {
+
+            // parcours des joueurs de la tuile
+            for (Player p : players) {
+                if (p.getIndex() == index) { // si il y a correspondance d'indice
+                    tile.addPlayer(p); // ajoute le joueur à la tuile
+                    break;
+                }
+            }
+        }
+
+        return tile;
     }
 }
