@@ -20,7 +20,7 @@ public class TileDTO {
 
         // en fonction de son type
         switch(c){
-            case None n -> new None(); // vide -> None()
+            case None n -> this.content = new None(); // vide -> None()
             default -> this.content = c; // non-vide -> contenu
         }
 
