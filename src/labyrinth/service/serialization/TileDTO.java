@@ -20,7 +20,7 @@ public class TileDTO {
 
         // en fonction de son type
         switch(c){
-            case None n -> this.content = null; // vide -> null
+            case None n -> new None(); // vide -> None()
             default -> this.content = c; // non-vide -> contenu
         }
 
@@ -36,8 +36,7 @@ public class TileDTO {
     }
 
     public Content getContent() {
-        // renvoie le contenu si la tuile n'est pas vide, sinon un None()
-        return content != null ? content : new None();
+        return content;
     }
 
     public Direction getOrientation() {
