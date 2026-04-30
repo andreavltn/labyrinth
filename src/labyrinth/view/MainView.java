@@ -41,9 +41,7 @@ public class MainView extends StackPane {
 
         // si chargement d'une partie (depuis un fichier)
         viewModel.mazeViewModelProperty().addListener((obs, oldVM, newVM) -> {
-            System.out.println("Changement de MazeViewModel détecté !");
             if (newVM != null) {
-                System.out.println("Tentative d'affichage du labyrinthe...");
                 updateDisplay(viewModel);
             }
         });

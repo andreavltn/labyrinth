@@ -142,4 +142,11 @@ public class BaseGameViewModel implements GameViewModel {
     public Services getServices() {
         return services;
     }
+
+    // force le rafraichissement de la vue du labyrinthe
+    public void forceRefreshMazeViewModel() {
+        if (game.getMaze() != null && game.getCurrentPlayer() != null) {
+            this.mazeViewModel.setValue(new BaseMazeViewModel(game, services));
+        }
+    }
 }

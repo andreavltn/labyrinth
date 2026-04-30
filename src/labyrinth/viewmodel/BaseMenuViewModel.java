@@ -1,6 +1,7 @@
 package labyrinth.viewmodel;
 
 import javafx.application.Platform;
+import labyrinth.model.GameState;
 import labyrinth.service.Services;
 import labyrinth.service.dialog.FileRequest;
 import labyrinth.service.serialization.GameDTO;
@@ -35,6 +36,12 @@ public class BaseMenuViewModel implements MenuViewModel {
     // charger une sauvegarde (depuis un fichier)
     public void load() {
 
+        // bloque le chargement d'une partie si on n'est pas à l'écran du bouton Start
+        if (gameViewModel.getGame().getState() != GameState.SETUP) {
+            services.getDialogService().publishError("Impossible de charger une partie en cours de jeu."); // erreur
+            return;
+        }
+
         // affiche une fenêtre "Ouvrir un fichier"
         FileRequest req = services.getDialogService().requestOpenFile("Charger une sauvegarde");
 
@@ -57,6 +64,8 @@ public class BaseMenuViewModel implements MenuViewModel {
 
                     // hydrater le jeu avec l'objet GameDTO
                     gameViewModel.getGame().updateFrom(dto);
+
+                    gameViewModel.forceRefreshMazeViewModel();
 
                     // affiche une alerte de confirmation
                     Platform.runLater(() -> services.getDialogService().publishMessage("Partie chargée!"));
