@@ -12,5 +12,6 @@ public interface GameViewModel {
     List<PlayerViewModel> getPlayersViewModel(); // renvoie la liste des 4 emplacements de joueur
     ObservableValue<GameState> stateProperty(); // l'état actuel du jeu (i.e GameState)
     ObservableValue<Boolean> canStartProperty(); // true si on peut démarrer la partie
+    ObservableValue<MazeViewModel> mazeViewModelProperty(); // le labyrinthe
     void startGame(); // démarre la partie (SETUP -> MOVE_MAZE)
 }

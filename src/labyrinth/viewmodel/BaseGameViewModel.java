@@ -17,7 +17,7 @@ public class BaseGameViewModel implements GameViewModel {
     private final ObservableValue<Integer> currentPlayerId;
     private final List<PlayerViewModel> players = new ArrayList<>();
     private final SimpleBooleanProperty canStart = new SimpleBooleanProperty(false);
-    private BaseMazeViewModel mazeViewModel;
+    private final SimpleObjectProperty<MazeViewModel> mazeViewModel = new SimpleObjectProperty<>(null);
     private final Services services;
 
     public BaseGameViewModel(Game game, Services services) {
@@ -47,6 +47,20 @@ public class BaseGameViewModel implements GameViewModel {
         // met aussi à jour si l'état du jeu change
         this.state.addListener((obs, old, newState) -> updateCanStart());
 
+        // initialisation directe si le labyrinthe existe
+        if (game.getMaze() != null) {
+            this.mazeViewModel.set(new BaseMazeViewModel(game, services));
+        }
+
+        // met à jour la vue du labyrinthe s'il change
+        game.mazeProperty().addListener((obs, oldMaze, newMaze) -> {
+            if (newMaze != null && game.getCurrentPlayer() != null) {
+                this.mazeViewModel.setValue(new BaseMazeViewModel(game, services));
+            } else {
+                this.mazeViewModel.setValue(null);
+            }
+        });
+
         updateCanStart();
     }
 
@@ -68,9 +82,14 @@ public class BaseGameViewModel implements GameViewModel {
         return title;
     }
 
+    @Override
+    public ObservableValue<MazeViewModel> mazeViewModelProperty() {
+        return mazeViewModel;
+    }
+
     @Override // renvoie le plateau du jeu
     public MazeViewModel getMazeViewModel() {
-        return mazeViewModel;
+        return mazeViewModel.getValue();
     }
 
     @Override // renvoie l'id du joueur courant (joueur dont c'est le tour)
@@ -105,7 +124,7 @@ public class BaseGameViewModel implements GameViewModel {
         game.init();
 
         // crée le MazeViewModel une fois le jeu initialisé
-        this.mazeViewModel = new BaseMazeViewModel(game,services);
+        this.mazeViewModel.set(new BaseMazeViewModel(game, services));
 
         // message de début de partie
         if (services != null && services.getDialogService() != null) {

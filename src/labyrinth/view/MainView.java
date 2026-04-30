@@ -1,5 +1,6 @@
 package labyrinth.view;
 
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import labyrinth.model.GameState;
@@ -24,12 +25,38 @@ public class MainView extends StackPane {
         // écoute les changements d'état
         viewModel.stateProperty().addListener((obs, old, newState) -> {
 
-            if (old == GameState.SETUP) { // si l'ancien état était SETUP
-                javafx.application.Platform.runLater(() -> {
-                    MazeView mazeView = new MazeView(viewModel.getMazeViewModel()); // crée le plateau
+            // si on quitte l'état setup
+            if (old == GameState.SETUP && newState != GameState.SETUP) {
+                updateDisplay(viewModel); // met à jour la vue du jeu
+            }
+
+            // si on réinitialise le jeu
+            else if (newState == GameState.SETUP){
+                Platform.runLater(() -> {
                     getChildren().clear(); // retire le bouton Start
-                    getChildren().add(mazeView); // affiche le plateau
+                    getChildren().add(btnStart); // re-affiche le bouton start
                 });
+            }
+        });
+
+        // si chargement d'une partie (depuis un fichier)
+        viewModel.mazeViewModelProperty().addListener((obs, oldVM, newVM) -> {
+            System.out.println("Changement de MazeViewModel détecté !");
+            if (newVM != null) {
+                System.out.println("Tentative d'affichage du labyrinthe...");
+                updateDisplay(viewModel);
+            }
+        });
+    }
+
+    // méthode pour mettre à jour l'affichage du labyrinthe
+    private void updateDisplay(GameViewModel viewModel) {
+        Platform.runLater(() -> {
+            if (viewModel.getMazeViewModel() != null) {
+                MazeView mazeView = new MazeView(viewModel.getMazeViewModel()); // crée le plateau
+                getChildren().clear(); // retire le bouton Start
+                getChildren().add(mazeView); // affiche le jeu
+                mazeView.requestFocus(); // forcer le focus
             }
         });
     }

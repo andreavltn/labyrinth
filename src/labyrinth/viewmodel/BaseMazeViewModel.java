@@ -60,7 +60,7 @@ public class BaseMazeViewModel implements MazeViewModel {
         state.addListener((obs, old, newState) -> {
 
             // si c'est la fin du tour
-            if (newState == GameState.TURN_END) {
+            if (newState == GameState.TURN_END && game.getState() == GameState.TURN_END) {
                 game.endTurn(); // fin de tour
 
                 // message de changement de joueur courant (passage au tour suivant)
