@@ -27,15 +27,15 @@ public class ContentAdapter implements JsonSerializer<Content>, JsonDeserializer
 
             // StartingPosition (position de départ)
             case StartingPosition s -> {
-                // sérialise le contenu
-                obj = ctx.serialize(s, StartingPosition.class).getAsJsonObject();
+                // sérialise le contenu (utilise un nouveal objet pour éviter la récursion infinie)
+                obj = new Gson().toJsonTree(s).getAsJsonObject();
                 typeName = "startingPosition"; // de type "startingPosition"
             }
 
             // Treasure (trésor)
             case Treasure t -> {
-                // sérialise le contenu
-                obj = ctx.serialize(t, Treasure.class).getAsJsonObject();
+                // sérialise le contenu (utilise un nouveal objet pour éviter la récursion infinie)
+                obj = new Gson().toJsonTree(t).getAsJsonObject();
                 typeName = "treasure"; // de type "treasure"
             }
 
@@ -69,8 +69,12 @@ public class ContentAdapter implements JsonSerializer<Content>, JsonDeserializer
         // en fonction de la chaine du type, désérialise l'objet
         switch (typeName) {
             case "none" -> content = new None();
-            case "startingPosition" -> content = ctx.deserialize(obj, StartingPosition.class);
-            case "treasure" -> content = ctx.deserialize(obj, Treasure.class);
+
+            // nouvel objet pour éviter la récursion
+            case "startingPosition" -> content = new Gson().fromJson(obj, StartingPosition.class);
+
+            // idem
+            case "treasure" -> content = new Gson().fromJson(obj, Treasure.class);
 
             // sinon par défaut, erreur
             default -> throw new JsonParseException("Le type : " + typeName + " est inconnu");

@@ -1,5 +1,6 @@
 package labyrinth.viewmodel;
 
+import javafx.application.Platform;
 import labyrinth.service.Services;
 import labyrinth.service.dialog.FileRequest;
 import labyrinth.service.serialization.GameDTO;
@@ -46,21 +47,26 @@ public class BaseMenuViewModel implements MenuViewModel {
             }
 
             // sinon
-            try {
-                // lire le contenu du fichier (chaine de caractères)
-                String json = Files.readString(file.toPath());
+            Platform.runLater(() -> {
+                try {
+                    // lire le contenu du fichier (chaine de caractères)
+                    String json = Files.readString(file.toPath());
 
-                // désérialiser la chaine de caractères en objet GameDTO utilisable
-                GameDTO dto = services.getSerializationService().deserialize(json);
+                    // désérialiser la chaine de caractères en objet GameDTO utilisable
+                    GameDTO dto = services.getSerializationService().deserialize(json);
 
-                // hydrater le jeu avec l'objet GameDTO
-                gameViewModel.getGame().updateFrom(dto);
+                    // hydrater le jeu avec l'objet GameDTO
+                    gameViewModel.getGame().updateFrom(dto);
 
-            } catch (Exception e) { // si erreur
+                    // affiche une alerte de confirmation
+                    Platform.runLater(() -> services.getDialogService().publishMessage("Partie chargée!"));
 
-                // affiche une alerte de type erreur (rouge)
-                services.getDialogService().publishError("Erreur lors du chargement : " + e.getMessage());
-            }
+                } catch (Exception e) { // si erreur
+
+                    // affiche une alerte de type erreur (rouge)
+                    services.getDialogService().publishError("Erreur lors du chargement : " + e.getMessage());
+                }
+            });
         });
     }
 
@@ -79,20 +85,26 @@ public class BaseMenuViewModel implements MenuViewModel {
             }
 
             // sinon
-            try {
-                // créer un objet GameDTO à partir des données du jeu
-                GameDTO dto = new GameDTO(gameViewModel.getGame());
+            Platform.runLater(() -> {
+                try {
+                    // créer un objet GameDTO à partir des données du jeu
+                    GameDTO dto = new GameDTO(gameViewModel.getGame());
 
-                // sérialiser l'objet en chaine de caractères
-                String json = services.getSerializationService().serialize(dto);
+                    // sérialiser l'objet en chaine de caractères
+                    String json = services.getSerializationService().serialize(dto);
 
-                // écrire la chaine dans le fichier
-                Files.writeString(file.toPath(), json);
+                    // écrire la chaine dans le fichier
+                    Files.writeString(file.toPath(), json);
 
-            } catch (Exception e) { // si erreur
-                // affiche une alerte de type erreur (rouge)
-                services.getDialogService().publishError("Erreur lors de la sauvegarde : " + e.getMessage());
-            }
+                    // affiche une alerte de confirmation
+                    Platform.runLater(() -> services.getDialogService().publishMessage("Partie sauvegardée!"));
+
+                } catch (Exception e) { // si erreur
+                    // affiche une alerte de type erreur (rouge)
+                    services.getDialogService().publishError("Erreur lors de la sauvegarde : " + e.getMessage());
+                }
+            });
         });
+
     }
 }
