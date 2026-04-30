@@ -7,6 +7,13 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import labyrinth.model.Game;
+import labyrinth.service.Services;
+import labyrinth.service.dialog.DefaultDialogService;
+import labyrinth.service.dialog.DialogService;
+import labyrinth.service.serialization.JsonSerializationService;
+import labyrinth.service.serialization.SerializationService;
+import labyrinth.view.DialogHandler;
 import labyrinth.view.GameView;
 import labyrinth.viewmodel.BaseGameViewModel;
 import labyrinth.viewmodel.BaseMenuViewModel;
@@ -16,8 +23,25 @@ public class Labyrinth extends Application {
     @Override
     public void start(Stage stage) {
 
-        // création du viewModel (stub pour l'instant)
-        BaseGameViewModel gameViewModel = new BaseGameViewModel();
+        // ======== SERVICES ======== //
+
+        // service de sérialisation (convertir Game <-> Json)
+        SerializationService serializationService = new JsonSerializationService();
+
+        // service de dialogue (publier messages et requêtes de fichier)
+        DialogService dialogService = new DefaultDialogService();
+
+        // objet Services : rassemble les deux
+        Services services = new Services(serializationService, dialogService);
+
+        // gestionnaire de dialogue
+        new DialogHandler(services.getDialogService(), stage);
+
+        // ======== JEU ET VIEWMODEL  ======== //
+
+        // création du jeu + viewModel
+        Game game = new Game();
+        BaseGameViewModel gameViewModel = new BaseGameViewModel(game, services);
 
         stage.titleProperty().bind(gameViewModel.titleProperty());
 
@@ -27,23 +51,28 @@ public class Labyrinth extends Application {
         // création du menu
         MenuBar menuBar = new MenuBar();
 
-        // bouton "Jeu"
+        // bouton du menu "Jeu"
         Menu menuGame = new Menu("Jeu");
 
+        // menu "Jeu"
         MenuItem itemNewGame = new MenuItem("Nouvelle partie"); // bouton "Nouvelle partie"
         MenuItem itemExit = new MenuItem("Quitter"); // bouton "Quitter"
-        menuGame.getItems().addAll(itemNewGame, itemExit); // ajout au sous-menu
+        MenuItem itemSave = new MenuItem("Sauvegarder");  // bouton "Sauvegarder"
+        MenuItem itemLoad = new MenuItem("Charger"); // bouton "Charger"
+        menuGame.getItems().addAll(itemNewGame, itemExit, itemSave, itemLoad); // ajout au sous-menu
 
-        // bouton "Aide"
+        // bouton du menu "Aide"
         Menu menuHelp = new Menu("Aide");
         MenuItem itemAbout = new MenuItem("À propos"); // bouton "A-propos"
         menuHelp.getItems().add(itemAbout); // ajout au sous-menu
 
         menuBar.getMenus().addAll(menuGame, menuHelp); // ajout des boutons à la barre Menu
 
-        // menu des actions
-        BaseMenuViewModel menuViewModel = new BaseMenuViewModel(gameViewModel);
+        // branchement des actions aux boutons
+        BaseMenuViewModel menuViewModel = new BaseMenuViewModel(gameViewModel, services);
         itemNewGame.setOnAction(e -> menuViewModel.newGame()); // lancer une partie
+        itemSave.setOnAction(e -> menuViewModel.save()); // sauvegarder les données
+        itemLoad.setOnAction(e -> menuViewModel.load()); // charger les données
         itemExit.setOnAction(e -> menuViewModel.exit()); // quitter le jeu
         itemAbout.setOnAction(e -> menuViewModel.about()); // afficher les infos
 

@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import labyrinth.model.*;
+import labyrinth.service.Services;
 import labyrinth.util.adapter.FxAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +18,11 @@ public class BaseGameViewModel implements GameViewModel {
     private final List<PlayerViewModel> players = new ArrayList<>();
     private final SimpleBooleanProperty canStart = new SimpleBooleanProperty(false);
     private BaseMazeViewModel mazeViewModel;
+    private final Services services;
 
-    public BaseGameViewModel() {
-        this.game = new Game();
+    public BaseGameViewModel(Game game, Services services) {
+        this.game = game;
+        this.services = services;
 
         // adapte les observables du modèle vers javaFX
         this.state = FxAdapter.adapt(game.stateProperty());
@@ -102,8 +105,22 @@ public class BaseGameViewModel implements GameViewModel {
         game.init();
 
         // crée le MazeViewModel une fois le jeu initialisé
-        this.mazeViewModel = new BaseMazeViewModel(game);
+        this.mazeViewModel = new BaseMazeViewModel(game,services);
+
+        // message de début de partie
+        if (services != null && services.getDialogService() != null) {
+            int id = game.getCurrentPlayer().getIndex() + 1; // +1 car les indices commencent à 0
+            services.getDialogService().publishMessage("La partie commence! C'est au joueur " + id + " de jouer.");
+        }
 
         updateCanStart();
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public Services getServices() {
+        return services;
     }
 }

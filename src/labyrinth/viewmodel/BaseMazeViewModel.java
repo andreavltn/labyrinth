@@ -2,6 +2,7 @@ package labyrinth.viewmodel;
 
 import javafx.beans.value.ObservableValue;
 import labyrinth.model.*;
+import labyrinth.service.Services;
 import labyrinth.util.adapter.FxAdapter;
 import labyrinth.util.collection.ArrayGrid;
 import labyrinth.util.collection.Grid;
@@ -16,10 +17,12 @@ public class BaseMazeViewModel implements MazeViewModel {
     private final List<SlotViewModel> slots = new ArrayList<>();
     private final BaseTileViewModel extraTileViewModel;
     private final ObservableValue<GameState> state;
+    private final Services services;
 
-    public BaseMazeViewModel(Game game) {
+    public BaseMazeViewModel(Game game, Services services) {
 
         this.game = game;
+        this.services = services;
 
         // récupère les données du jeu
         Maze maze = game.getMaze();
@@ -59,6 +62,13 @@ public class BaseMazeViewModel implements MazeViewModel {
             // si c'est la fin du tour
             if (newState == GameState.TURN_END) {
                 game.endTurn(); // fin de tour
+
+                // message de changement de joueur courant (passage au tour suivant)
+                if (services != null && services.getDialogService() != null && game.getCurrentPlayer() != null) {
+                    int id = game.getCurrentPlayer().getIndex() + 1; // récupère l'id du joueur courant
+                    services.getDialogService().publishMessage("C'est au joueur " + id + " de jouer.");
+                }
+
                 return; // redéclenche le listener
             }
 
