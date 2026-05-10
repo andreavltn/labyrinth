@@ -3,6 +3,7 @@ package labyrinth.service.serialization;
 import labyrinth.model.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class GameDTO {
 
@@ -10,11 +11,13 @@ public class GameDTO {
     private final int currentPlayerIndex; // -1 si pas de joueurCourant
     private final List<PlayerDTO> players;
     private final MazeDTO maze;
+    private final UUID uuid;
 
     // constructeur à partir d'un jeu
     public GameDTO(Game game) {
 
         this.state = game.getState(); // récupère l'état du jeu
+        this.uuid = game.getUuid(); // récupère l'uuid du jeu
 
         Player cp = game.getCurrentPlayer(); // récupère le joueur courant
         if (cp != null){ // si il n'est pas nul
@@ -43,18 +46,22 @@ public class GameDTO {
     }
 
     public GameState getState() {
-        return state;
+        return this.state;
     }
 
     public List<PlayerDTO> getPlayers() {
-        return players;
+        return this.players;
     }
 
     public int getCurrentPlayerIndex() {
-        return currentPlayerIndex;
+        return this.currentPlayerIndex;
     }
 
     public MazeDTO getMaze() {
-        return maze;
+        return this.maze;
+    }
+
+    public UUID getUuid() {
+        return this.uuid;
     }
 }
