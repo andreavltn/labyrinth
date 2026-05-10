@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import labyrinth.util.observable.SimpleObservableValue;
+import java.util.UUID;
 
 public class Game {
 
@@ -22,6 +23,7 @@ public class Game {
     private final SimpleObservableValue<Player> currentPlayer; // le joueur courant
     private final Random random; // générateur aléatoire
     private final SimpleObservableValue<Paths<Tile>> paths; // les chemins accessibles par le joueur courant
+    private final UUID uuid; // l'uuid de la partie
 
     public Game() {
         this.slots = new ArrayList<>(); // liste de 4 slots
@@ -34,6 +36,11 @@ public class Game {
         this.maze = new SimpleObservableValue<>(null);; // pas de labyrinthe
         this.random = new Random(); // pour l'aléatoire
         this.paths = new SimpleObservableValue<>(null); // pas de chemins pour l'instant
+        this.uuid = UUID.randomUUID(); // uuid aléatoire à la création
+    }
+
+    public List<Slot> getSlots() {
+        return this.slots;
     }
 
     public Slot getSlot(int index){
@@ -74,6 +81,10 @@ public class Game {
 
     public Player getCurrentPlayer() {
         return this.currentPlayer.getValue();
+    }
+
+    public UUID getUuid() {
+        return this.uuid;
     }
 
     // initialise le jeu (SETUP)
