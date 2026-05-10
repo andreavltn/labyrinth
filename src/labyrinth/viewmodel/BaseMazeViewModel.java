@@ -66,7 +66,7 @@ public class BaseMazeViewModel implements MazeViewModel {
                 // message de changement de joueur courant (passage au tour suivant)
                 if (services != null && services.getDialogService() != null && game.getCurrentPlayer() != null) {
                     int id = game.getCurrentPlayer().getIndex() + 1; // récupère l'id du joueur courant
-                    services.getDialogService().publishMessage("C'est au joueur " + id + " de jouer.");
+                    services.getDialogService().publishMessage("C'est au tour du joueur " + id + "!");
                 }
 
                 return; // redéclenche le listener
