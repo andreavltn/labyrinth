@@ -1,17 +1,14 @@
 package labyrinth.service.persistence;
 
 import labyrinth.service.serialization.SerializationService;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.PreparedStatement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import labyrinth.service.serialization.GameDTO;
 import java.time.Instant;
+import java.util.UUID;
 
 public class SqlPersistenceService {
 
@@ -73,7 +70,7 @@ public class SqlPersistenceService {
     public void saveGame(GameDTO gameDTO) {
 
         String data = serializationService.serialize(gameDTO); // sérialize le DTO
-        long timestamp = Instant.now().toEpochMilli(); // récupère l'instant actuel (timestamp)
+        long timestamp = Instant.now().toEpochMilli(); // récupère l'horodatage actuel (timestamp)
         String id = gameDTO.getUuid().toString(); // uuid de la partie en chaine
 
         // requête préparée pour insérer une ligne dans la table Games()
@@ -83,12 +80,57 @@ public class SqlPersistenceService {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, id); // id de la partie (id)
-            ps.setLong(2, timestamp); // instant (timestamp)
+            ps.setLong(2, timestamp); // horodatage (timestamp)
             ps.setString(3, data); // données (data)
             ps.executeUpdate(); // éxécution de la requête
 
         } catch (SQLException e) {
             throw new SqlException("Erreur sauvegarde de la partie", e);
         }
+    }
+
+    // charge la dernière partie de la table Games
+    public GameDTO loadLatestGame() {
+
+        // requête pour récupérer les données de la première ligne de la table Games
+        // (triée par horodatage décroissant)
+        String sql = "SELECT data FROM games ORDER BY timestamp DESC LIMIT 1";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) { // éxécute la requête
+
+            // si il y a au moins une ligne de résultat (i.e la table n'est pas vide)
+            if (rs.next()) {
+                String data = rs.getString("data"); // récupère la colonne "data" de la ligne
+                return serializationService.deserialize(data); // désérialize les données
+            } else {
+                return null; // sinon aucun résultat, pas de partie
+            }
+
+        } catch (SQLException e) {
+            throw new SqlException("Erreur chargement de la dernière partie", e);
+        }
+    }
+
+    // crée un nouveau profil utilisateur dans la table Profiles
+    public UUID createUserProfile(String name) {
+
+        UUID uuid = UUID.randomUUID(); // génère un UUID aléatoire unique
+
+        // requête préparée pour insérer le profil dans la table Profiles
+        String sql = "INSERT INTO profiles (id, name) VALUES (?, ?)";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, uuid.toString()); // uuid en chaine (uuid)
+            ps.setString(2, name); // nom (name)
+            ps.executeUpdate(); // éxécute la requête
+
+        } catch (SQLException e) {
+            throw new SqlException("Erreur lors de la création du profil", e);
+        }
+
+        firePlayerInfoChanged(uuid); // notifie les observateurs pour rafraichir l'affichage
+        return uuid; // renvoie l'UUID généré
     }
 }
