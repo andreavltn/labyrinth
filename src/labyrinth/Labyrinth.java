@@ -8,9 +8,11 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import labyrinth.model.Game;
+import labyrinth.service.GameBootstrapper;
 import labyrinth.service.Services;
 import labyrinth.service.dialog.DefaultDialogService;
 import labyrinth.service.dialog.DialogService;
+import labyrinth.service.persistence.SqlPersistenceService;
 import labyrinth.service.serialization.JsonSerializationService;
 import labyrinth.service.serialization.SerializationService;
 import labyrinth.view.DialogHandler;
@@ -31,16 +33,22 @@ public class Labyrinth extends Application {
         // service de dialogue (publier messages et requêtes de fichier)
         DialogService dialogService = new DefaultDialogService();
 
-        // objet Services : rassemble les deux
-        Services services = new Services(serializationService, dialogService);
+        // service de persistance (sauvegarde automatique)
+        SqlPersistenceService persistenceService = new SqlPersistenceService(serializationService);
+
+        // objet Services : rassemble les trois services
+        Services services = new Services(serializationService, dialogService, persistenceService);
 
         // gestionnaire de dialogue
         new DialogHandler(services.getDialogService(), stage);
 
         // ======== JEU ET VIEWMODEL  ======== //
 
-        // création du jeu + viewModel
-        Game game = new Game();
+        // création du jeu
+        GameBootstrapper bootstrapper = new GameBootstrapper(services);
+        Game game = bootstrapper.bootstrap();
+
+        // viewmodel
         BaseGameViewModel gameViewModel = new BaseGameViewModel(game, services);
 
         stage.titleProperty().bind(gameViewModel.titleProperty());
