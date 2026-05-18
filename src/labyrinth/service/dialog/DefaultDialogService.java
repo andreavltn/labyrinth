@@ -12,6 +12,7 @@ public class DefaultDialogService implements DialogService {
     public DefaultDialogService() {
         this.message = new SimpleObservableValue<>(null);
         this.fileRequest = new SimpleObservableValue<>(null);
+        this.profilesManagerRequest = new SimpleObservableValue<>(null);
     }
 
     @Override
