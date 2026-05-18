@@ -14,9 +14,11 @@ import java.io.File;
 public class DialogHandler {
 
     private final Window owner; // la fenêtre principale
+    private final ProfilesManagerWindow profilesManagerWindow; // la fenêtre de gestion des profils
 
-    public DialogHandler(DialogService dialogService, Window owner) {
+    public DialogHandler(DialogService dialogService, Window owner, ProfilesManagerWindow profilesManagerWindow) {
         this.owner = owner;
+        this.profilesManagerWindow = profilesManagerWindow;
 
         // s'abonne aux messages (publishMessage/publishError)
         dialogService.messageProperty().addListener((obs, old, message) -> {
@@ -29,6 +31,13 @@ public class DialogHandler {
         dialogService.fileRequestProperty().addListener((obs, old, fileRequest) -> {
             if (fileRequest != null) {
                 Platform.runLater(() -> handleFileRequest(fileRequest));
+            }
+        });
+
+        // s'abonne aux requêtes d'ouverture du gestionnaire du profil
+        dialogService.profilManagerRequestProperty().addListener((obs, old, req) -> {
+            if (req != null) {
+                Platform.runLater(() -> profilesManagerWindow.show()); // affiche la fenêtre
             }
         });
     }

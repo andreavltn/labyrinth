@@ -17,6 +17,7 @@ import labyrinth.service.serialization.JsonSerializationService;
 import labyrinth.service.serialization.SerializationService;
 import labyrinth.view.DialogHandler;
 import labyrinth.view.GameView;
+import labyrinth.view.ProfilesManagerWindow;
 import labyrinth.viewmodel.BaseGameViewModel;
 import labyrinth.viewmodel.BaseMenuViewModel;
 
@@ -39,10 +40,7 @@ public class Labyrinth extends Application {
         // objet Services : rassemble les trois services
         Services services = new Services(serializationService, dialogService, persistenceService);
 
-        // gestionnaire de dialogue
-        new DialogHandler(services.getDialogService(), stage);
-
-        // ======== JEU ET VIEWMODEL  ======== //
+        // ======== JEU ET GESTIONNAIRES  ======== //
 
         // création du jeu
         GameBootstrapper bootstrapper = new GameBootstrapper(services);
@@ -50,11 +48,20 @@ public class Labyrinth extends Application {
 
         // viewmodel
         BaseGameViewModel gameViewModel = new BaseGameViewModel(game, services);
-
         stage.titleProperty().bind(gameViewModel.titleProperty());
+
+        // gestionnaire des profils
+        ProfilesManagerWindow profilesManagerWindow = new ProfilesManagerWindow(
+                gameViewModel.getUserProfilesViewModel()
+        );
+
+        // gestionnaire de dialogue
+        new DialogHandler(services.getDialogService(), stage, profilesManagerWindow);
 
         // création de la vue principale
         GameView gameView = new GameView(gameViewModel);
+
+        // ======== MENUS  ======== //
 
         // création du menu
         MenuBar menuBar = new MenuBar();
@@ -69,18 +76,24 @@ public class Labyrinth extends Application {
         MenuItem itemLoad = new MenuItem("Charger"); // bouton "Charger"
         menuGame.getItems().addAll(itemNewGame, itemExit, itemSave, itemLoad); // ajout au sous-menu
 
+        // menu Edit
+        Menu menuEdit = new Menu("Edit");
+        MenuItem itemManageProfiles = new MenuItem("Gestionnaire des profils");
+        menuEdit.getItems().add(itemManageProfiles);
+
         // bouton du menu "Aide"
         Menu menuHelp = new Menu("Aide");
         MenuItem itemAbout = new MenuItem("À propos"); // bouton "A-propos"
         menuHelp.getItems().add(itemAbout); // ajout au sous-menu
 
-        menuBar.getMenus().addAll(menuGame, menuHelp); // ajout des boutons à la barre Menu
+        menuBar.getMenus().addAll(menuGame, menuEdit, menuHelp); // ajout des boutons à la barre Menu
 
         // branchement des actions aux boutons
         BaseMenuViewModel menuViewModel = new BaseMenuViewModel(gameViewModel, services);
         itemNewGame.setOnAction(e -> menuViewModel.newGame()); // lancer une partie
         itemSave.setOnAction(e -> menuViewModel.save()); // sauvegarder les données
         itemLoad.setOnAction(e -> menuViewModel.load()); // charger les données
+        itemManageProfiles.setOnAction(e -> menuViewModel.showProfileManager()); // afficher le gestionnaire profils
         itemExit.setOnAction(e -> menuViewModel.exit()); // quitter le jeu
         itemAbout.setOnAction(e -> menuViewModel.about()); // afficher les infos
 

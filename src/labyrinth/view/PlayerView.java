@@ -8,11 +8,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import labyrinth.viewmodel.PlayerViewModel;
+import labyrinth.viewmodel.UserProfilesViewModel;
 
 // représente un seul joueur
 public class PlayerView extends VBox {
 
-    public PlayerView(PlayerViewModel viewModel, int id) {
+    public PlayerView(PlayerViewModel viewModel, int id, UserProfilesViewModel userProfilesViewModel) {
 
         setSpacing(10); // 10px d'espace entre chaque élément du Vbox (chaque Joueur)
 
@@ -41,8 +42,7 @@ public class PlayerView extends VBox {
         firstLine.getChildren().addAll(playerImage, label);
 
         // bouton pour ajouter un joueur
-        Button btnAdd = new Button("Ajouter");
-        btnAdd.setOnAction(e -> viewModel.addPlayer());
+        AddPlayerButton btnAdd = new AddPlayerButton(viewModel, userProfilesViewModel);
 
         // bouton pour retirer un joueur
         Button btnRemove = new Button("Retirer");
