@@ -14,4 +14,5 @@ public interface GameViewModel {
     ObservableValue<Boolean> canStartProperty(); // true si on peut démarrer la partie
     ObservableValue<MazeViewModel> mazeViewModelProperty(); // le labyrinthe
     void startGame(); // démarre la partie (SETUP -> MOVE_MAZE)
+    UserProfilesViewModel getUserProfilesViewModel(); // liste des profils utilisateur
 }

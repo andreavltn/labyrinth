@@ -5,6 +5,8 @@ import javafx.beans.value.ObservableValue;
 import labyrinth.model.*;
 import labyrinth.util.adapter.FxAdapter;
 
+import java.util.UUID;
+
 public class BasePlayerViewModel implements PlayerViewModel {
 
     private final Slot slot;
@@ -34,6 +36,13 @@ public class BasePlayerViewModel implements PlayerViewModel {
     public void addPlayer() {
         if (!locked.get()) { // seulement si le slot n'est pas verrouillé
             slot.open();
+        }
+    }
+
+    @Override // idem avec uuid
+    public void addPlayer(UUID uuid) {
+        if (!locked.get()) { // seulement si le slot n'est pas verrouillé
+            slot.open(uuid);
         }
     }
 

@@ -19,10 +19,12 @@ public class BaseGameViewModel implements GameViewModel {
     private final SimpleBooleanProperty canStart = new SimpleBooleanProperty(false);
     private final SimpleObjectProperty<MazeViewModel> mazeViewModel = new SimpleObjectProperty<>(null);
     private final Services services;
+    private final UserProfilesViewModel userProfilesViewModel;
 
     public BaseGameViewModel(Game game, Services services) {
         this.game = game;
         this.services = services;
+        this.userProfilesViewModel = new BaseUserProfilesViewModel(services.getPersistenceService(), game);
 
         // adapte les observables du modèle vers javaFX
         this.state = FxAdapter.adapt(game.stateProperty());
@@ -133,6 +135,11 @@ public class BaseGameViewModel implements GameViewModel {
         }
 
         updateCanStart();
+    }
+
+    @Override // renvoie la liste des profils utilisateur
+    public UserProfilesViewModel getUserProfilesViewModel() {
+        return userProfilesViewModel;
     }
 
     public Game getGame() {

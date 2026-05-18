@@ -33,7 +33,7 @@ public class Game {
         this.players = new ArrayList<>(); // liste des joueurs
         this.state = new SimpleObservableValue<>(GameState.SETUP);// on est en SETUP au depart
         this.currentPlayer = new SimpleObservableValue<>(null); // pas de joueur courant
-        this.maze = new SimpleObservableValue<>(null);; // pas de labyrinthe
+        this.maze = new SimpleObservableValue<>(null); // pas de labyrinthe
         this.random = new Random(); // pour l'aléatoire
         this.paths = new SimpleObservableValue<>(null); // pas de chemins pour l'instant
         this.uuid = UUID.randomUUID(); // uuid aléatoire à la création
