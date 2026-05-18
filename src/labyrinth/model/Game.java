@@ -64,7 +64,7 @@ public class Game {
     }
 
     public ObservableValue<GameState> stateProperty(){
-        return this.state.asReadOnly();
+        return this.state.asReadOnly(); // en lecture seule (pas de modif possible)
     }
 
     public GameState getState() {
@@ -72,11 +72,11 @@ public class Game {
     }
 
     public ObservableValue<Player> currentPlayerProperty(){
-        return this.currentPlayer.asReadOnly();
+        return this.currentPlayer.asReadOnly(); // en lecture seule (pas de modif possible)
     }
 
     public ObservableValue<Maze> mazeProperty() {
-        return this.maze.asReadOnly();
+        return this.maze.asReadOnly(); // en lecture seule (pas de modif possible)
     }
 
     public Player getCurrentPlayer() {

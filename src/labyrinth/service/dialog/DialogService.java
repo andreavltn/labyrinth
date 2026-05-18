@@ -9,4 +9,6 @@ public interface DialogService {
     FileRequest requestSaveFile(String request);
     ObservableValue<Message> messageProperty();
     ObservableValue<FileRequest> fileRequestProperty();
+    void requestShowProfilesManager();
+    ObservableValue<ProfilesManagerRequest> profilManagerRequestProperty();
 }

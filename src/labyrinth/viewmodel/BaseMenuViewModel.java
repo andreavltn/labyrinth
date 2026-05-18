@@ -33,6 +33,11 @@ public class BaseMenuViewModel implements MenuViewModel {
         // à implémenter plus tard
     }
 
+    @Override
+    public void showProfileManager() {
+        services.getDialogService().requestShowProfilesManager();
+    }
+
     // charger une sauvegarde (depuis un fichier)
     public void load() {
 
@@ -114,6 +119,5 @@ public class BaseMenuViewModel implements MenuViewModel {
                 }
             });
         });
-
     }
 }
