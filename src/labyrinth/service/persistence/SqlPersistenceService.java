@@ -223,6 +223,21 @@ public class SqlPersistenceService {
         firePlayerInfoChanged(userId); // notifie les observateurs pour rafraichir l'affichage
     }
 
+    // supprime le contenu de la table Games (la dernière partie enregistrée)
+    public void clearGames() {
+
+        // requête de suppression
+        String sql = "DELETE FROM games";
+
+        try (Statement stmt = connection.createStatement()) {
+
+            stmt.execute(sql); // éxécute la requête de suppression
+
+        } catch (SQLException e) {
+            throw new SqlException("Erreur suppression des parties", e);
+        }
+    }
+
 
 
 

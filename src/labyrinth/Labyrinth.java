@@ -76,12 +76,12 @@ public class Labyrinth extends Application {
         MenuItem itemLoad = new MenuItem("Charger"); // bouton "Charger"
         menuGame.getItems().addAll(itemNewGame, itemExit, itemSave, itemLoad); // ajout au sous-menu
 
-        // menu Edit
-        Menu menuEdit = new Menu("Edit");
-        MenuItem itemManageProfiles = new MenuItem("Gestionnaire des profils");
-        menuEdit.getItems().add(itemManageProfiles);
+        // menu "Modifier"
+        Menu menuEdit = new Menu("Modifier"); // bouton "Modifier"
+        MenuItem itemManageProfiles = new MenuItem("Gestionnaire des profils"); // bouton "Gestionnaire des profils"
+        menuEdit.getItems().add(itemManageProfiles); // ajout au sous-menu
 
-        // bouton du menu "Aide"
+        // menu "Aide"
         Menu menuHelp = new Menu("Aide");
         MenuItem itemAbout = new MenuItem("À propos"); // bouton "A-propos"
         menuHelp.getItems().add(itemAbout); // ajout au sous-menu

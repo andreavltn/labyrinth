@@ -148,9 +148,20 @@ public class Game {
         this.currentPlayer.setValue(null); // pas de joueur courant
         this.paths.setValue(null); // pas de chemins
 
-        for (Player player : players) { // réinitialise le deck de chaque joueur (vide)
+        // réinitialise le deck de chaque joueur (deck vide)
+        for (Player player : players) {
             player.getDeck().init(new ArrayList<>());
         }
+
+        // vide les slots
+        for (Slot slot : slots) {
+            if (slot.getPlayer() != null) {
+                slot.close();
+            }
+        }
+
+        // vide les joueurs
+        this.players.clear();
     }
 
     // fait tourner la tuile supplémentaire

@@ -22,6 +22,11 @@ public class MainView extends StackPane {
             btnStart.setDisable(!Boolean.TRUE.equals(canStart));
         });
 
+        // si une partie est déjà lancée, met à jour la vue
+        if (viewModel.getMazeViewModel() != null) {
+            updateDisplay(viewModel);
+        }
+
         // écoute les changements d'état
         viewModel.stateProperty().addListener((obs, old, newState) -> {
 

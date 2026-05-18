@@ -20,7 +20,8 @@ public class BaseMenuViewModel implements MenuViewModel {
 
     @Override
     public void newGame() {
-        // à implémenter plus tard
+        gameViewModel.getGame().reset(); // réinitialise la partie
+        services.getPersistenceService().clearGames(); // supprime la dernière partie de la bdd
     }
 
     @Override
