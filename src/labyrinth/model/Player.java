@@ -8,17 +8,25 @@ public class Player {
     private final int index;
     private Deck deck;
     private final UUID uuid;
+    private final boolean isBot;
 
     public Player(int index){
-        this.index = index;
-        this.deck = new Deck();
-        this.uuid = null;
+        this(index, null, false);
+    }
+
+    public Player(int index, boolean isBot){
+        this(index, null, isBot);
     }
 
     public Player(int index, UUID uuid) {
+        this(index, uuid, false);
+    }
+
+    public Player(int index, UUID uuid, boolean isBot) {
         this.index = index;
         this.deck = new Deck();
         this.uuid = uuid;
+        this.isBot = isBot;
     }
 
     public int getIndex(){
@@ -33,8 +41,11 @@ public class Player {
         return this.uuid;
     }
 
-    // hydrate le Player à partir d'un PlayerDTO
+    public boolean isBot() {
+        return isBot;
+    }
+
     public void updateFrom(PlayerDTO dto) {
-        this.deck.updateFrom(dto.getDeck()); // appelle sur le deck directement
+        this.deck.updateFrom(dto.getDeck());
     }
 }
