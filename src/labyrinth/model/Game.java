@@ -1,8 +1,12 @@
 package labyrinth.model;
 
+import labyrinth.model.strategy.Move;
+import labyrinth.model.strategy.PlayStrategy;
+import labyrinth.model.strategy.StubPlayStrategy;
 import labyrinth.service.serialization.GameDTO;
 import labyrinth.service.serialization.PlayerDTO;
 import labyrinth.util.collection.Grid;
+import labyrinth.util.collection.Position;
 import labyrinth.util.graph.Paths;
 import labyrinth.util.graph.Graph;
 import labyrinth.util.graph.MazeToGraphAdapter;
@@ -16,6 +20,7 @@ import java.util.UUID;
 
 public class Game {
 
+    private static final PlayStrategy STRATEGY = new StubPlayStrategy();
     private final SimpleObservableValue<Maze> maze; // le labyrinthe
     private final List<Slot> slots; // les slots de jeu
     private final List<Player> players; // les joueurs
@@ -337,5 +342,37 @@ public class Game {
 
         // 6) remettre l'état du jeu
         this.state.setValue(dto.getState());
+    }
+
+    public void startTurn() {
+
+        Player player = this.getCurrentPlayer();
+
+        if (player == null || !player.isBot()) {
+            return;
+        }
+
+        Move move = STRATEGY.getNextMove(new GameDTO(this));
+
+        if (move == null) {
+            return;
+        }
+
+        // rotation de la tuile supplémentaire
+        this.rotateExtraTile(move.nbRotations());
+
+        // déplacement du labyrinthe
+        this.moveMaze(move.mazeMove());
+
+        Position p = move.destination();
+
+        Tile destinationTile = this.getMaze().getTiles().get(p.x(), p.y());
+
+        this.movePlayer(destinationTile);
+
+        // fin automatique du tour
+        if (this.getState() == GameState.TURN_END) {
+            this.endTurn();
+        }
     }
 }
