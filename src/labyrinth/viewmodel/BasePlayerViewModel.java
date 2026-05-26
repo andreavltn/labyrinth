@@ -35,20 +35,22 @@ public class BasePlayerViewModel implements PlayerViewModel {
     @Override // ajoute un joueur humain
     public void addPlayer() {
         if (!locked.get()) { // seulement si le slot n'est pas verrouillé
-            slot.open();
+            slot.open(false);
         }
     }
 
     @Override // idem avec uuid
     public void addPlayer(UUID uuid) {
         if (!locked.get()) { // seulement si le slot n'est pas verrouillé
-            slot.open(uuid);
+            slot.open(uuid, false);
         }
     }
 
     @Override // ajoute un bot
     public void addBot() {
-        addPlayer(); // pour l'instant ajoute un joueur humain
+        if (!locked.get()) {
+            slot.open(true);
+        }
     }
 
     @Override // retire un joueur du slot
