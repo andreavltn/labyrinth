@@ -12,8 +12,8 @@ public class MazeDTO {
 
     private final Grid<TileDTO> tiles;
     private final TileDTO extraTile;
-    private final List<Integer> fixedRows;
-    private final List<Integer> fixedColumns;
+    private static List<Integer> fixedRows;
+    private static List<Integer> fixedColumns;
     private final MazeMove forbiddenMove;
 
     // constructeur à partir d'un labyrinthe
