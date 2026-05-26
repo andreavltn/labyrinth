@@ -38,8 +38,8 @@ public class MazeSimulation {
       tiles.set(position, tile);
     }
 
-    List<Integer> fixRows = mazeDTO.getFixRows();
-    List<Integer> fixColumns = mazeDTO.getFixColumns();
+    List<Integer> fixRows = MazeDTO.getFixedRows();
+    List<Integer> fixColumns = MazeDTO.getFixedColumns();
     allowedRows =
         IntStream.range(0, tiles.getHeight())
             .filter(i -> !fixRows.contains(i))

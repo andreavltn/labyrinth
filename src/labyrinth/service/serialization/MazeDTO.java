@@ -50,11 +50,11 @@ public class MazeDTO {
         return extraTile;
     }
 
-    public List<Integer> getFixedRows() {
+    public static List<Integer> getFixedRows() {
         return fixedRows;
     }
 
-    public List<Integer> getFixedColumns() {
+    public static List<Integer> getFixedColumns() {
         return fixedColumns;
     }
 

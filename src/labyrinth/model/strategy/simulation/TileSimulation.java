@@ -17,7 +17,7 @@ public class TileSimulation {
 
   public TileSimulation(TileDTO tileDTO, Position position) {
     tileDTO
-        .getTileKind()
+        .getKind()
         .getExits()
         .forEach(d -> exits.add(d.getRotated(tileDTO.getOrientation())));
     this.content = tileDTO.getContent();
