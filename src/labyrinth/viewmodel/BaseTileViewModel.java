@@ -16,7 +16,7 @@ public class BaseTileViewModel implements TileViewModel {
     private final SimpleObjectProperty<Direction> direction;
     private final SimpleObjectProperty<List<Integer>> playersId;
     private final SimpleObjectProperty<Integer> startingPosition;
-    private final SimpleBooleanProperty treasure;
+    private final SimpleObjectProperty<Integer> treasureId;
     private final SimpleObjectProperty<Integer> currentPlayerId;
 
     private Tile currentTile;
@@ -30,7 +30,7 @@ public class BaseTileViewModel implements TileViewModel {
         this.direction = new SimpleObjectProperty<>();
         this.playersId = new SimpleObjectProperty<>(List.of());
         this.startingPosition = new SimpleObjectProperty<>(-1);
-        this.treasure = new SimpleBooleanProperty(false);
+        this.treasureId = new SimpleObjectProperty<>(-1);
         this.currentPlayerId = new SimpleObjectProperty<>(currentPlayerId);
 
         // initialise avec la tuile actuelle
@@ -62,11 +62,11 @@ public class BaseTileViewModel implements TileViewModel {
                 }
         );
 
-        // true si c'est un trésor, false sinon
-        this.treasure.set(
+        // idTreasure si c'est un trésor, -1 sinon
+        this.treasureId.set(
                 switch (tile.getContent()) {
-                    case Treasure t -> true;
-                    default -> false;
+                    case Treasure t -> t.id();
+                    default -> -1;
                 }
         );
 
@@ -112,9 +112,9 @@ public class BaseTileViewModel implements TileViewModel {
         return startingPosition;
     }
 
-    @Override // renvoie true si c'est un trésor, false sinon
-    public ObservableValue<Boolean> treasureProperty() {
-        return treasure;
+    @Override // renvoie l'id du trésor si c'est un trésor, -1 sinon
+    public ObservableValue<Integer> treasureIdProperty() {
+        return treasureId;
     }
 
     @Override // renvoie les id des joueurs présents sur la tuile

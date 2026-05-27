@@ -36,6 +36,20 @@ public class PlayerView extends VBox {
             label.setText("Joueur " + (id + 1) + (activeNow ? " | Actif" : " | Inactif")); // actif/inactif
         });
 
+        // label avec le trésor cible
+        int initialTarget = viewModel.targetTreasureProperty().getValue();
+        Label targetLabel = new Label(
+                initialTarget >= 0 ? "Cherche trésor T" + initialTarget : "Retour à la case départ"
+        );
+        targetLabel.setStyle("-fx-text-fill: gold; -fx-font-size: 11px;");
+
+        // met à jour le label quand l'état change
+        viewModel.targetTreasureProperty().addListener((obs, old, idTreasure) -> {
+            targetLabel.setText(
+                    idTreasure >= 0 ? "Cherche trésor T" + idTreasure : "Retour à la case départ"
+            );
+        });
+
         // 10px d'espace entre l'image et le nom + statut
         HBox firstLine = new HBox(10);
         firstLine.setAlignment(Pos.CENTER_LEFT); // centré à gauche
@@ -78,6 +92,6 @@ public class PlayerView extends VBox {
         // textes couleur blanc
         label.setStyle("-fx-text-fill: white;");
 
-        getChildren().addAll(firstLine, buttons); // empile les 2 boites verticalement
+        getChildren().addAll(firstLine, targetLabel, buttons); // empile les 2 boites verticalement
     }
 }

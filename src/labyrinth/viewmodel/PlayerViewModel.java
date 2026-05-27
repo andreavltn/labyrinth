@@ -12,4 +12,5 @@ public interface PlayerViewModel {
     void addBot(); // idem (joueur bot)
     void removePlayer(); // rend l'emplacement inactif
     ObservableValue<Boolean> lockedProperty(); // true si l'emplacement est verrouillé (après SETUP)
+    ObservableValue<Integer> targetTreasureProperty(); // id du trésor cible (-1 si retour à la case départ)
 }

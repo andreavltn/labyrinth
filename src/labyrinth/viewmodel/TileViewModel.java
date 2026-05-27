@@ -12,7 +12,7 @@ public interface TileViewModel {
     ObservableValue<Direction> directionProperty(); // // propriété observable de la direction de la tuile
     Direction getDirection(); // renvoie la direction de la tuile
     ObservableValue<Integer> startingPositionProperty(); // position de départ d'un joueur (-1 si aucune)
-    ObservableValue<Boolean> treasureProperty(); // true si la tuile est un trésor
+    ObservableValue<Integer> treasureIdProperty(); // id (-1 si pas de trésor)
     ObservableValue<List<Integer>> playersIdProperty(); // liste des ids des joueurs sur la tuile
     ObservableValue<Integer> currentPlayerIdProperty(); // id du joueur courant (dont c'est le tour)
 }
