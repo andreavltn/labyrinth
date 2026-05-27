@@ -7,29 +7,45 @@ import labyrinth.service.serialization.TileDTO;
 import labyrinth.util.collection.Grid;
 import labyrinth.util.collection.Position;
 
-public class StubPlayStrategy implements PlayStrategy {
+public class StubPlayStrategy
+        implements PlayStrategy {
 
     @Override
-    public Move getNextMove(GameDTO snapshot) {
+    public Move getNextMove(
+            GameDTO snapshot
+    ) {
 
         MazeMove forbiddenMove =
-                snapshot.getMaze().getForbiddenMove();
+                snapshot.getMaze()
+                        .getForbiddenMove();
 
         MazeMove chosenMove = null;
 
-        for (int i = 1; i < 6; i += 2) {
+        for (int i = 1;
+             i < 6;
+             i += 2) {
 
             MazeMove candidate =
-                    new MazeMove(Direction.UP, i);
+                    new MazeMove(
+                            Direction.UP,
+                            i
+                    );
 
-            if (!candidate.equals(forbiddenMove)) {
-                chosenMove = candidate;
+            if (!candidate.equals(
+                    forbiddenMove
+            )) {
+
+                chosenMove =
+                        candidate;
+
                 break;
             }
         }
 
         Position currentPosition =
-                findCurrentPlayerPosition(snapshot);
+                findCurrentPlayerPosition(
+                        snapshot
+                );
 
         return new Move(
                 0,
@@ -38,21 +54,39 @@ public class StubPlayStrategy implements PlayStrategy {
         );
     }
 
-    private Position findCurrentPlayerPosition(GameDTO snapshot) {
+    private Position
+    findCurrentPlayerPosition(
+            GameDTO snapshot
+    ) {
 
         int currentPlayer =
-                snapshot.getCurrentPlayerIndex();
+                snapshot
+                        .getCurrentPlayerIndex();
 
         Grid<TileDTO> tiles =
-                snapshot.getMaze().getTiles();
+                snapshot.getMaze()
+                        .getTiles();
 
-        for (int y = 0; y < tiles.getHeight(); y++) {
-            for (int x = 0; x < tiles.getWidth(); x++) {
+        for (int y = 0;
+             y < tiles.getHeight();
+             y++) {
 
-                TileDTO tile = tiles.get(x, y);
+            for (int x = 0;
+                 x < tiles.getWidth();
+                 x++) {
 
-                if (tile.getPlayers().contains(currentPlayer)) {
-                    return new Position(x, y);
+                TileDTO tile =
+                        tiles.get(x, y);
+
+                if (tile.getPlayers()
+                        .contains(
+                                currentPlayer
+                        )) {
+
+                    return new Position(
+                            x,
+                            y
+                    );
                 }
             }
         }

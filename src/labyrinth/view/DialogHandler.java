@@ -4,6 +4,8 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import labyrinth.model.Game;
+import labyrinth.model.GameState;
 import labyrinth.service.dialog.DialogService;
 import labyrinth.service.dialog.FileRequest;
 import labyrinth.service.dialog.Message;
@@ -13,73 +15,144 @@ import java.io.File;
 
 public class DialogHandler {
 
-    private final Window owner; // la fenêtre principale
-    private final ProfilesManagerWindow profilesManagerWindow; // la fenêtre de gestion des profils
+    private final Window owner;
 
-    public DialogHandler(DialogService dialogService, Window owner, ProfilesManagerWindow profilesManagerWindow) {
+    private final ProfilesManagerWindow profilesManagerWindow;
+
+    // IMPORTANT :
+    // référence directe vers la partie
+    private final Game game;
+
+    public DialogHandler(
+            DialogService dialogService,
+            Window owner,
+            ProfilesManagerWindow profilesManagerWindow,
+            Game game
+    ) {
+
         this.owner = owner;
         this.profilesManagerWindow = profilesManagerWindow;
+        this.game = game;
 
-        // s'abonne aux messages (publishMessage/publishError)
-        dialogService.messageProperty().addListener((obs, old, message) -> {
-            if (message != null) {
-                Platform.runLater(() -> handleMessage(message));
-            }
-        });
+        // gestion des messages
+        dialogService.messageProperty().addListener(
+                (obs, oldValue, newValue) -> {
 
-        // s'abonne aux requêtes de fichier (requestOpenFile/requestSaveFile)
-        dialogService.fileRequestProperty().addListener((obs, old, fileRequest) -> {
-            if (fileRequest != null) {
-                Platform.runLater(() -> handleFileRequest(fileRequest));
-            }
-        });
+                    if (newValue != null) {
 
-        // s'abonne aux requêtes d'ouverture du gestionnaire du profil
-        dialogService.profilManagerRequestProperty().addListener((obs, old, req) -> {
-            if (req != null) {
-                Platform.runLater(() -> profilesManagerWindow.show()); // affiche la fenêtre
-            }
-        });
+                        Platform.runLater(
+                                () -> handleMessage(newValue)
+                        );
+                    }
+                }
+        );
+
+        // gestion des fichiers
+        dialogService.fileRequestProperty().addListener(
+                (obs, oldValue, newValue) -> {
+
+                    if (newValue != null) {
+
+                        Platform.runLater(
+                                () -> handleFileRequest(newValue)
+                        );
+                    }
+                }
+        );
+
+        // gestion des profils
+        dialogService.profilManagerRequestProperty().addListener(
+                (obs, oldValue, newValue) -> {
+
+                    if (newValue != null) {
+
+                        Platform.runLater(
+                                () -> profilesManagerWindow.show()
+                        );
+                    }
+                }
+        );
     }
 
-    // gestion d'un message (boite de dialogue)
+    // gestion d'un message
     private void handleMessage(Message message) {
+
         Alert alert;
 
-        // si c'est une erreur
+        // erreur
         if (message.isError()) {
-            // Alerte rouge "erreur"
-            alert = new Alert(Alert.AlertType.ERROR);
+
+            alert =
+                    new Alert(Alert.AlertType.ERROR);
+
             alert.setTitle("Erreur");
-        } else { // sinon c'est une information
-            // Alerte bleue "information"
-            alert = new Alert(Alert.AlertType.INFORMATION);
+        }
+
+        // information
+        else {
+
+            alert =
+                    new Alert(Alert.AlertType.INFORMATION);
+
             alert.setTitle("Information");
         }
 
-        alert.initOwner(owner); // rattache la boîte à la fenêtre principale
-        alert.setHeaderText(null); // pas de sous-titre
+        alert.initOwner(owner);
 
-        alert.setContentText(message.getMessage()); // texte du message
-        alert.showAndWait(); // affiche l'alerte, attend que l'utilisateur clique sur OK
+        alert.setHeaderText(null);
+
+        alert.setContentText(
+                message.getMessage()
+        );
+
+        alert.showAndWait();
+
+        // IMPORTANT :
+        // après validation du popup,
+        // passage au joueur suivant
+        try {
+
+            if (
+                    game != null
+                            && game.getState()
+                            == GameState.TURN_END
+            ) {
+
+                game.endTurn();
+            }
+
+        } catch (Exception ignored) {
+        }
     }
 
-    // gestion d'une demande de fichier (sélecteur de fichier)
-    private void handleFileRequest(FileRequest fileRequest) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle(fileRequest.getRequest()); // titre de la fenêtre
+    // gestion des fichiers
+    private void handleFileRequest(
+            FileRequest fileRequest
+    ) {
+
+        FileChooser chooser =
+                new FileChooser();
+
+        chooser.setTitle(
+                fileRequest.getRequest()
+        );
 
         File file;
 
-        // si c'est en mode lecture
+        // ouverture
         if (fileRequest.getMode() == Mode.OPEN) {
-            // fenêtre "Ouvrir un fichier"
-            file = fileChooser.showOpenDialog(owner);
-        } else { // sinon c'est en mode écriture
-            // fenêtre "Sauvegarder un fichier"
-            file = fileChooser.showSaveDialog(owner);
+
+            file =
+                    chooser.showOpenDialog(owner);
         }
 
-        fileRequest.setFile(file); // complète le CompletableFuture
+        // sauvegarde
+        else {
+
+            file =
+                    chooser.showSaveDialog(owner);
+        }
+
+        fileRequest.setFile(file);
     }
 }

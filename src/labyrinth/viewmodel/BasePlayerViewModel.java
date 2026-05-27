@@ -10,58 +10,92 @@ import java.util.UUID;
 public class BasePlayerViewModel implements PlayerViewModel {
 
     private final Slot slot;
-    private final Game game;
-    private final ObservableValue<Boolean> active;
-    private final SimpleBooleanProperty locked = new SimpleBooleanProperty(false);
 
-    public BasePlayerViewModel(Slot slot, Game game) {
+    private final Game game;
+
+    private final ObservableValue<Boolean> active;
+
+    private final SimpleBooleanProperty locked =
+            new SimpleBooleanProperty(false);
+
+    public BasePlayerViewModel(
+            Slot slot,
+            Game game
+    ) {
+
         this.slot = slot;
         this.game = game;
 
-        // actif si le slot contient un joueur, sinon inactif (+ adaptation vers javaFX)
-        this.active = FxAdapter.adapt(slot.playerProperty()).map(p -> p != null);
+        // actif si le slot contient un joueur
+        this.active =
+                FxAdapter.adapt(
+                        slot.playerProperty()
+                ).map(p -> p != null);
 
-        // dès qu'on quitte l'état SETUP, verrouille le slot
-        game.stateProperty().addListener((obs, old, newState) -> {
-            locked.set(newState != GameState.SETUP);
-        });
+        // verrouille hors setup
+        game.stateProperty().addListener(
+                (obs, old, newState) -> {
+
+                    locked.set(
+                            newState != GameState.SETUP
+                    );
+                }
+        );
     }
 
-    @Override // renvoie true si le slot est actif, false sinon
-    public ObservableValue<Boolean> activeProperty() {
+    @Override
+    public ObservableValue<Boolean>
+    activeProperty() {
+
         return active;
     }
 
-    @Override // ajoute un joueur humain
+    @Override
     public void addPlayer() {
-        if (!locked.get()) { // seulement si le slot n'est pas verrouillé
+
+        if (!locked.get()) {
             slot.open(false);
         }
     }
 
-    @Override // idem avec uuid
-    public void addPlayer(UUID uuid) {
-        if (!locked.get()) { // seulement si le slot n'est pas verrouillé
+    @Override
+    public void addPlayer(
+            UUID uuid
+    ) {
+
+        if (!locked.get()) {
             slot.open(uuid, false);
         }
     }
 
-    @Override // ajoute un bot
+    @Override
     public void addBot() {
+
         if (!locked.get()) {
             slot.open(true);
         }
     }
 
-    @Override // retire un joueur du slot
+    @Override
     public void removePlayer() {
-        if (!locked.get()) { // seulement si le slot n'est pas verrouillé
+
+        if (!locked.get()) {
             slot.close();
         }
     }
 
-    @Override // renvoie true si le slot est verrouillé, false sinon
-    public ObservableValue<Boolean> lockedProperty() {
+    @Override
+    public ObservableValue<Boolean>
+    lockedProperty() {
+
         return locked;
+    }
+
+    public ObservableValue<Player>
+    playerProperty() {
+
+        return FxAdapter.adapt(
+                slot.playerProperty()
+        );
     }
 }

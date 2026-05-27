@@ -56,7 +56,7 @@ public class Labyrinth extends Application {
         );
 
         // gestionnaire de dialogue
-        new DialogHandler(services.getDialogService(), stage, profilesManagerWindow);
+        new DialogHandler(services.getDialogService(), stage, profilesManagerWindow, game);
 
         // création de la vue principale
         GameView gameView = new GameView(gameViewModel);

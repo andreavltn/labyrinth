@@ -60,16 +60,13 @@ public class BaseMazeViewModel implements MazeViewModel {
         state.addListener((obs, old, newState) -> {
 
             // si c'est la fin du tour
-            if (newState == GameState.TURN_END && game.getState() == GameState.TURN_END) {
-                game.endTurn(); // fin de tour
+            if (newState == GameState.TURN_END
+                    && services != null
+                    && services.getDialogService() != null) {
 
-                // message de changement de joueur courant (passage au tour suivant)
-                if (services != null && services.getDialogService() != null && game.getCurrentPlayer() != null) {
-                    int id = game.getCurrentPlayer().getIndex() + 1; // récupère l'id du joueur courant
-                    services.getDialogService().publishMessage("C'est au tour du joueur " + id + "!");
-                }
-
-                return; // redéclenche le listener
+                services.getDialogService().publishMessage(
+                        "Fin du tour - cliquez sur OK"
+                );
             }
 
             // slotsActive = true si on est en MAZE_MOVE, false sinon
