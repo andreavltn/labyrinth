@@ -11,400 +11,292 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class DefaultPlayStrategy
-        implements PlayStrategy {
+public class DefaultPlayStrategy implements PlayStrategy {
 
+    // nombre de meilleurs candidats sélectionnés par Monte-Carlo
     private static final int CANDIDATES_FOR_MONTE_CARLO = 12;
+
+    // profondeur maximale des simulations
     private static final int SIMULATION_DEPTH = 4;
+
+    // nombre de coups aléatoires considérés pour chaque étape
     private static final int RANDOM_CHOICES = 8;
+
+    // nombre de simulations effectuées pour chaque candidat
     private static final int SIMULATIONS_PER_CANDIDATE = 5;
+
+    // poids des simulations dans le score final (alpha)
     private static final int SIMULATION_WEIGHT = 10;
 
-    private final Random random =
-            new Random();
+    private final Random random = new Random(); // générateur de nombres aléatoires
+    private GameSimulation game; // le jeu pour la simulation
+    private PlayerSimulation initialPlayer; // le joueur courant pour la simulation
 
-    private GameSimulation game;
+    @Override // calcule le prochain coup à jouer à partir d'une snapshot du jeu
+    public Move getNextMove(GameDTO snapshot) {
 
-    private PlayerSimulation initialPlayer;
+        // initialise le jeu et le joueur courant
+        this.game = new GameSimulation(snapshot);
+        this.initialPlayer = game.getCurrentPlayer();
 
-    @Override
-    public Move getNextMove(
-            GameDTO snapshot
-    ) {
-
-        this.game =
-                new GameSimulation(snapshot);
-
-        this.initialPlayer =
-                game.getCurrentPlayer();
-
-        return computeNextMove();
+        return computeNextMove(); // délègue à computeNextMove();
     }
 
+    // calcule le meilleur coup
     private Move computeNextMove() {
 
-        if (game.hasWon(initialPlayer)) {
-            return null;
-        }
+        // si le jeu est terminé, pas de prochain coup
+        if (game.hasWon(initialPlayer)) return null;
 
-        List<ScoredMove> moves =
-                computeMoves();
+        // calcule tous les coups valides avec leur score
+        List<ScoredMove> moves = computeMoves();
 
-        if (moves.isEmpty()) {
-            return null;
-        }
+        // si il n'y a pas de coup valide, pas de prochain coup
+        if (moves.isEmpty()) return null;
 
-        int firstPassBestScore =
-                getBestScore(moves);
+        // première passe : récupère le meilleur score et les coups associés
+        int firstPassBestScore = getBestScore(moves);
+        List<ScoredMove> bestFirstPassMoves = getMovesWithScore(moves, firstPassBestScore);
 
-        List<ScoredMove> bestFirstPassMoves =
-                getMovesWithScore(
-                        moves,
-                        firstPassBestScore
-                );
-
+        // deuxième passe : sélectionne les meilleurs candidats et ajuste leur score avec Monte-Carlo
         List<ScoredMove> adjustedMoves =
                 moves.stream()
-                        .sorted((a, b) -> Integer.compare(
-                                b.score(),
-                                a.score()
-                        ))
+                        .sorted((a, b) -> Integer.compare(b.score(), a.score()))
                         .limit(CANDIDATES_FOR_MONTE_CARLO)
                         .map(m -> adjust(m, SIMULATION_DEPTH))
                         .toList();
 
-        int bestScore =
-                getBestScore(adjustedMoves);
+        // récupère le meilleur score et les coups associés (après ajustement)
+        int bestScore = getBestScore(adjustedMoves);
+        List<ScoredMove> bestMoves = getMovesWithScore(adjustedMoves, bestScore);
 
-        List<ScoredMove> bestMoves =
-                getMovesWithScore(
-                        adjustedMoves,
-                        bestScore
-                );
+        // reprend la première passe si aucun coup après ajustement
+        if (bestMoves.isEmpty()) bestMoves = bestFirstPassMoves;
 
-        if (bestMoves.isEmpty()) {
-            bestMoves = bestFirstPassMoves;
-        }
-
-        return bestMoves.get(
-                random.nextInt(
-                        bestMoves.size()
-                )
-        ).move();
+        // renvoie un des meilleurs coups aléatoirement
+        return bestMoves.get(random.nextInt(bestMoves.size())).move();
     }
 
+    // calcule le score
     private int getScore() {
 
-        if (game.hasWon(initialPlayer)) {
-            return 10000;
-        }
+        // si le jeu fait gagner le joueur courant
+        if (game.hasWon(initialPlayer)) return 10000; // très bon score
 
-        if (game.isGameOver()) {
-            return -10000;
-        }
+        // si le jeu fait perdre le joueur courant
+        if (game.isGameOver()) return -10000; // très mauvais score
 
-        int treasures =
-                initialPlayer
-                        .getDiscardPile()
-                        .size();
+        // récupère le trésor actuel du joueur courant, et calcule sa distance
+        int treasures = initialPlayer.getDiscardPile().size();
+        int distance = game.getDistanceToTarget(initialPlayer);
 
-        int distance =
-                game.getDistanceToTarget(
-                        initialPlayer
-                );
-
-        return 100 * treasures
-                - distance;
+        // sinon score = 100*indiceTresor - distanceAuTresor
+        return 100 * treasures - distance;
     }
 
-    private int getBestScore(
-            List<ScoredMove> moves
-    ) {
-
+    // renvoie le meilleur score parmi une liste de coups avec score
+    private int getBestScore(List<ScoredMove> moves) {
         return moves.stream()
                 .mapToInt(ScoredMove::score)
                 .max()
                 .orElse(Integer.MIN_VALUE);
     }
 
-    private List<ScoredMove> getMovesWithScore(
-            List<ScoredMove> moves,
-            int score
-    ) {
-
+    // renvoie tous les coups ayant exactement le score choisi, parmi la liste
+    private List<ScoredMove> getMovesWithScore(List<ScoredMove> moves, int score) {
         return moves.stream()
                 .filter(m -> m.score() == score)
                 .toList();
     }
 
+    // énumère tous les coups possibles, les simule, et renvoie leurs scores
     private List<ScoredMove> computeMoves() {
 
-        List<ScoredMove> scoredMoves =
-                new ArrayList<>();
+        // dimensions du jeu
+        int height = game.getMaze().getTiles().getHeight();
+        int width = game.getMaze().getTiles().getWidth();
 
-        for (MazeMove mazeMove :
-                game.getValidMazeMoves()) {
+        // liste des coups scorés
+        List<ScoredMove> scoredMoves = new ArrayList<>();
 
-            for (int rotation = 0;
-                 rotation < 4;
-                 rotation++) {
+        // pour chaque coup valide
+        for (MazeMove mazeMove : game.getValidMazeMoves()) {
 
-                game.modifyMaze(
-                        rotation,
-                        mazeMove
-                );
+            // pour chaque rotation de la tuile extra
+            for (int rotation = 0; rotation < 4; rotation++) {
+                game.modifyMaze(rotation, mazeMove);
 
-                Paths<TileSimulation> paths =
-                        game.computePaths();
+                // calcule les chemins possibles
+                Paths<TileSimulation> paths = game.computePaths();
 
-                for (int y = 0;
-                     y < game.getMaze()
-                             .getTiles()
-                             .getHeight();
-                     y++) {
+                // pour chaque tuile du plateau
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        TileSimulation tile = game.getMaze().getTiles().get(x, y);
 
-                    for (int x = 0;
-                         x < game.getMaze()
-                                 .getTiles()
-                                 .getWidth();
-                         x++) {
+                        // ignore les tuiles non accessibles
+                        if (!paths.isAccessible(tile)) continue;
 
-                        TileSimulation tile =
-                                game.getMaze()
-                                        .getTiles()
-                                        .get(x, y);
+                        // génère le déplacement, le joue, et calcule le score ensuite
+                        Move move = new Move(rotation, mazeMove, tile.getPosition());
+                        game.movePlayer(tile.getPosition());
+                        int score = getScore();
 
-                        if (!paths.isAccessible(tile)) {
-                            continue;
-                        }
+                        // enregistre le coup scoré
+                        scoredMoves.add(new ScoredMove(move, score));
 
-                        Move move =
-                                new Move(
-                                        rotation,
-                                        mazeMove,
-                                        tile.getPosition()
-                                );
-
-                        game.movePlayer(
-                                tile.getPosition()
-                        );
-
-                        int score =
-                                getScore();
-
-                        scoredMoves.add(
-                                new ScoredMove(
-                                        move,
-                                        score
-                                )
-                        );
-
+                        // annule le déplacement du joueur
                         game.undoLastPlayerMove();
                     }
                 }
-
+                // annule le déplacement du plateau
                 game.undoLastMazeModification();
             }
         }
-
         return scoredMoves;
     }
 
+    //
     private ScoredMove getRandomMove() {
 
-        List<MazeMove> mazeMoves =
-                game.getValidMazeMoves();
+        // récupère les coups valides, et en choisit un au hasard
+        List<MazeMove> mazeMoves = game.getValidMazeMoves();
+        MazeMove mazeMove = mazeMoves.get(random.nextInt(mazeMoves.size()));
 
-        MazeMove mazeMove =
-                mazeMoves.get(
-                        random.nextInt(
-                                mazeMoves.size()
-                        )
-                );
+        // génère une rotation aléatoire et l'applique
+        int rotation = random.nextInt(4);
+        game.modifyMaze(rotation, mazeMove);
 
-        int rotation =
-                random.nextInt(4);
+        // récupère les chemins accessibles, leurs tuiles d'arrivée, et récupère la meilleure d'entre elles
+        Paths<TileSimulation> paths = game.computePaths();
+        List<TileSimulation> accessibleTiles = getAccessibleTiles(paths);
+        TileSimulation destination = getBestDestination(accessibleTiles, game.getCurrentPlayer());
 
-        game.modifyMaze(
-                rotation,
-                mazeMove
-        );
+        // génère le mouvement associé
+        Move move = new Move(rotation, mazeMove, destination.getPosition());
 
-        Paths<TileSimulation> paths =
-                game.computePaths();
-
-        List<TileSimulation> accessibleTiles =
-                getAccessibleTiles(paths);
-
-        TileSimulation destination =
-                getBestDestination(
-                        accessibleTiles,
-                        game.getCurrentPlayer()
-                );
-
-        Move move =
-                new Move(
-                        rotation,
-                        mazeMove,
-                        destination.getPosition()
-                );
-
+        // applique le déplacement de joueur, et calcule le score
         game.movePlayer(destination);
+        int score = getScore();
 
-        int score =
-                getScore();
-
+        // annule les déplacements
         game.undoLastPlayerMove();
         game.undoLastMazeModification();
 
-        return new ScoredMove(
-                move,
-                score
-        );
+        // renvoie le coup scoré
+        return new ScoredMove(move, score);
     }
 
-    private List<TileSimulation> getAccessibleTiles(
-            Paths<TileSimulation> paths
-    ) {
+    // renvoie la liste des tuiles accessibles
+    private List<TileSimulation> getAccessibleTiles(Paths<TileSimulation> paths) {
 
-        List<TileSimulation> accessibleTiles =
-                new ArrayList<>();
+        // dimensions du plateau
+        int height = game.getMaze().getTiles().getHeight();
+        int width = game.getMaze().getTiles().getWidth();
 
-        for (int y = 0;
-             y < game.getMaze()
-                     .getTiles()
-                     .getHeight();
-             y++) {
+        // liste des tuiles accessibles
+        List<TileSimulation> accessibleTiles = new ArrayList<>();
 
-            for (int x = 0;
-                 x < game.getMaze()
-                         .getTiles()
-                         .getWidth();
-                 x++) {
+        // pour chaque tuile du plateau
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                TileSimulation tile = game.getMaze().getTiles().get(x, y);
 
-                TileSimulation tile =
-                        game.getMaze()
-                                .getTiles()
-                                .get(x, y);
-
+                // si elle est accessible, l'ajoute a la liste
                 if (paths.isAccessible(tile)) {
                     accessibleTiles.add(tile);
                 }
             }
         }
-
-        return accessibleTiles;
+        return accessibleTiles; // renvoie la liste
     }
 
-    private TileSimulation getBestDestination(
-            List<TileSimulation> tiles,
-            PlayerSimulation player
-    ) {
+    // renvoie la tuile accessible la plus proche de l'objectif du joueur donné (de son trésor)
+    // si égalité, renvoie une aléatoirement parmi les meilleures
+    private TileSimulation getBestDestination(List<TileSimulation> tiles, PlayerSimulation player) {
 
-        int bestDistance =
-                tiles.stream()
-                        .mapToInt(tile -> game.getDistanceToTarget(
-                                tile.getPosition(),
-                                player
-                        ))
-                        .min()
-                        .orElse(Integer.MAX_VALUE);
+        // récupère la distance de la tuile la plus proche de l'objectif
+        int bestDistance = tiles.stream()
+                .mapToInt(tile -> game.getDistanceToTarget(tile.getPosition(), player))
+                .min()
+                .orElse(Integer.MAX_VALUE);
 
-        List<TileSimulation> bestTiles =
-                tiles.stream()
-                        .filter(tile -> game.getDistanceToTarget(
-                                tile.getPosition(),
-                                player
-                        ) == bestDistance)
-                        .toList();
+        // récupère la/les meilleures tuiles
+        List<TileSimulation> bestTiles = tiles.stream()
+                .filter(tile -> game.getDistanceToTarget(tile.getPosition(), player) == bestDistance)
+                .toList();
 
-        return bestTiles.get(
-                random.nextInt(
-                        bestTiles.size()
-                )
-        );
+        // renvoie une aléatoire parmi les meilleures (si il y en a plusieurs)
+        return bestTiles.get(random.nextInt(bestTiles.size()));
     }
 
-    private Move getBestRandomMove(
-            int nb
-    ) {
+    // renvoie le meilleur coup parmi nb coups aléatoires
+    private Move getBestRandomMove(int nb) {
+        List<ScoredMove> moves = new ArrayList<>();
 
-        List<ScoredMove> moves =
-                new ArrayList<>();
-
-        for (int i = 0;
-             i < nb;
-             i++) {
-
+        // génère nb coups
+        for (int i = 0; i < nb; i++) {
             moves.add(getRandomMove());
         }
 
-        int bestScore =
-                getBestScore(moves);
+        // récupère le/les meilleurs coups
+        int bestScore = getBestScore(moves);
+        List<ScoredMove> bestMoves = getMovesWithScore(moves, bestScore);
 
-        List<ScoredMove> bestMoves =
-                getMovesWithScore(
-                        moves,
-                        bestScore
-                );
-
-        return bestMoves.get(
-                random.nextInt(
-                        bestMoves.size()
-                )
-        ).move();
+        // renvoie un aléatoire parmi les meilleurs (si il y en a plusieurs)
+        return bestMoves.get(random.nextInt(bestMoves.size())).move();
     }
 
-    private int simulate(
-            int maxDepth
-    ) {
+    // simule au plus maxDepth coups aléatoires depuis l'état courant
+    // renvoie le score
+    private int simulate(int maxDepth) {
 
-        if (maxDepth <= 0
-                || game.isGameOver()) {
-
-            return getScore();
+        // si on a atteint la profondeur max, ou qu'un joueur a gagné
+        if (maxDepth <= 0 || game.isGameOver()) {
+            return getScore(); // renvoie le score
         }
 
-        Move move =
-                getBestRandomMove(RANDOM_CHOICES);
+        // récupère le meilleur coup
+        Move move = getBestRandomMove(RANDOM_CHOICES);
 
+        // applique le coup
         game.apply(move);
 
-        int score =
-                simulate(maxDepth - 1);
+        // resimule à profondeur n-1
+        int score = simulate(maxDepth - 1);
 
+        // annule le coup
         game.undoLastMove();
 
+        // renvoie le score à la fin
         return score;
     }
 
-    private ScoredMove adjust(
-            ScoredMove scoredMove,
-            int maxDepth
-    ) {
+    // ajuste le score d'un coup par une moyenne des simulations Monte-Carlo
+    private ScoredMove adjust(ScoredMove scoredMove, int maxDepth) {
 
-        game.apply(
-                scoredMove.move()
-        );
+        // applique le coup
+        game.apply(scoredMove.move());
 
+        // somme les scores de simulation de Monte-Carlo
         int simulationScore = 0;
-
-        for (int i = 0;
-             i < SIMULATIONS_PER_CANDIDATE;
-             i++) {
-
-            simulationScore +=
-                    simulate(maxDepth);
+        for (int i = 0; i < SIMULATIONS_PER_CANDIDATE; i++) {
+            simulationScore += simulate(maxDepth);
         }
 
+        // annule le coup
         game.undoLastMove();
 
-        return new ScoredMove(
-                scoredMove.move(),
-                scoredMove.score()
-                        + simulationScore
-                        / (SIMULATION_WEIGHT
-                        * SIMULATIONS_PER_CANDIDATE)
-        );
+        // score moyen des simulations
+        int averageSimulationScore = simulationScore/SIMULATIONS_PER_CANDIDATE;
+
+        // pondération
+        int weightedSimulationScore = averageSimulationScore/SIMULATION_WEIGHT;
+
+        // combien les deux scores
+        int newScore = scoredMove.score() + weightedSimulationScore;
+
+        // renvoie le coup avec son nouveau score
+        return new ScoredMove(scoredMove.move(), newScore);
     }
 }
