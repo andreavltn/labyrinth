@@ -220,76 +220,53 @@ public class Game {
 
             Collections.shuffle(treasures);
 
-            player.getDeck().init(
-                    new ArrayList<>(treasures)
-            );
+            player.getDeck().init(new ArrayList<>(treasures));
         }
 
         // place les joueurs sur leur SP
         for (Player player : players) {
 
-            Tile startTile =
-                    this.maze.getValue()
-                            .getStartingTile(player);
+            Tile startTile = this.maze.getValue().getStartingTile(player);
 
             if (startTile != null) {
-
                 startTile.addPlayer(player);
             }
         }
 
         // choisit un premier joueur au hasard
-        Player randomPlayer =
-                players.get(
-                        random.nextInt(players.size())
-                );
+        Player randomPlayer = players.get(random.nextInt(players.size()));
 
-        this.currentPlayer.setValue(
-                randomPlayer
-        );
+        this.currentPlayer.setValue(randomPlayer);
 
         // calcule les chemins du joueur courant
         computePaths();
 
-        this.state.setValue(
-                GameState.MAZE_MOVE
-        );
+        this.state.setValue(GameState.MAZE_MOVE);
 
         // si le premier joueur est un bot
         if (randomPlayer.isBot()) {
 
-            Platform.runLater(
-                    this::startTurn
-            );
+            Platform.runLater(this::startTurn);
         }
     }
 
     // remettre le jeu à l'état initial
     public void reset() {
 
-        this.state.setValue(
-                GameState.SETUP
-        );
+        this.state.setValue(GameState.SETUP);
 
         this.maze.setValue(null);
-
         this.currentPlayer.setValue(null);
-
         this.paths.setValue(null);
 
         // réinitialise le deck de chaque joueur
         for (Player player : players) {
-
-            player.getDeck().init(
-                    new ArrayList<>()
-            );
+            player.getDeck().init(new ArrayList<>());
         }
 
         // vide les slots
         for (Slot slot : slots) {
-
             if (slot.getPlayer() != null) {
-
                 slot.close();
             }
         }
@@ -301,12 +278,8 @@ public class Game {
     // fait tourner la tuile supplémentaire
     public void rotateExtraTile(int nbTimes) {
 
-        if (this.getState()
-                != GameState.MAZE_MOVE) {
-
-            throw new IllegalStateException(
-                    "Le jeu n'est pas en état MAZE_MOVE"
-            );
+        if (this.getState() != GameState.MAZE_MOVE) {
+            throw new IllegalStateException("Le jeu n'est pas en état MAZE_MOVE");
         }
 
         Tile extraTile =
@@ -319,98 +292,66 @@ public class Game {
     // éxécute le mouvement (MAZE_MOVE)
     public void moveMaze(MazeMove move) {
 
-        if (this.getState()
-                != GameState.MAZE_MOVE) {
-
-            throw new IllegalStateException(
-                    "Le jeu n'est pas en état MAZE_MOVE"
-            );
+        if (this.getState() != GameState.MAZE_MOVE) {
+            throw new IllegalStateException("Le jeu n'est pas en état MAZE_MOVE");
         }
 
-        this.maze.getValue()
-                .move(move);
+        this.maze.getValue().move(move);
 
         computePaths();
 
-        this.state.setValue(
-                GameState.PLAYER_MOVE
-        );
+        this.state.setValue(GameState.PLAYER_MOVE);
     }
 
     // déplacer le joueur vers une tuile (PLAYER_MOVE)
     public void movePlayer(Tile tile) {
 
-        if (this.getState()
-                != GameState.PLAYER_MOVE) {
-
-            throw new IllegalStateException(
-                    "Le jeu n'est pas en état PLAYER_MOVE!"
-            );
+        if (this.getState() != GameState.PLAYER_MOVE) {
+            throw new IllegalStateException("Le jeu n'est pas en état PLAYER_MOVE!");
         }
 
         if (tile == null) {
-
-            throw new IllegalArgumentException(
-                    "La tuile est null"
-            );
+            throw new IllegalArgumentException("La tuile est null");
         }
 
-        if (this.paths.getValue() == null
-                || !this.paths.getValue()
-                .isAccessible(tile)) {
-
-            throw new IllegalArgumentException(
-                    "La tuile n'est pas accessible!"
-            );
+        if (this.paths.getValue() == null || !this.paths.getValue().isAccessible(tile)) {
+            throw new IllegalArgumentException("La tuile n'est pas accessible!");
         }
 
-        Player player =
-                currentPlayer.getValue();
+        Player player = currentPlayer.getValue();
 
         // retire le joueur de sa tuile actuelle
-        Tile currentTile =
-                this.maze.getValue()
-                        .getTile(player);
+        Tile currentTile = this.maze.getValue().getTile(player);
 
         currentTile.removePlayer(player);
 
         // place le joueur sur la nouvelle tuile
         tile.addPlayer(player);
 
-        // gestion des trésors
-        Deck deck =
-                player.getDeck();
+        // récupère le deck du joueur
+        Deck deck = player.getDeck();
 
-        List<Integer> drawPile =
-                deck.getDrawPile();
+        // pioche du jeu
+        List<Integer> drawPile = deck.getDrawPile();
 
+        // gestion de l'arrivée du pion
         if (!drawPile.isEmpty()) {
-
-            Content content =
-                    tile.getContent();
-
+            Content content = tile.getContent();
             switch (content) {
-
+                // si c'est un trésor
                 case Treasure t -> {
-
-                    if (t.id()
-                            == drawPile.getFirst()) {
-
-                        deck.discard();
+                    // et qu'il est celui recherché par le joueur
+                    if (t.id() == drawPile.getFirst()) {
+                        deck.discard(); // enlève la carte correspondante du jeu du joueur
                     }
                 }
-
-                default -> {
-                }
+                default -> {}
             }
         }
 
         // vérifie victoire
         if (hasWon(player)) {
-
-            this.state.setValue(
-                    GameState.GAME_OVER
-            );
+            this.state.setValue(GameState.GAME_OVER);
         }
 
         else {
@@ -424,21 +365,15 @@ public class Game {
     // vérifier victoire
     private boolean hasWon(Player player) {
 
-        Deck deck =
-                player.getDeck();
+        Deck deck = player.getDeck();
 
         if (!deck.getDrawPile().isEmpty()) {
-
             return false;
         }
 
-        Tile currentTile =
-                this.maze.getValue()
-                        .getTile(player);
+        Tile currentTile = this.maze.getValue().getTile(player);
 
-        Tile startingTile =
-                this.maze.getValue()
-                        .getStartingTile(player);
+        Tile startingTile = this.maze.getValue().getStartingTile(player);
 
         return currentTile.equals(startingTile);
     }
@@ -446,49 +381,29 @@ public class Game {
     // fin de tour
     public void endTurn() {
 
-        if (this.getState()
-                != GameState.TURN_END) {
-
-            throw new IllegalStateException(
-                    "Le jeu n'est pas en état TURN_END"
-            );
+        if (this.getState() != GameState.TURN_END) {
+            throw new IllegalStateException("Le jeu n'est pas en état TURN_END");
         }
 
-        int nextIndex =
-                (
-                        players.indexOf(
-                                currentPlayer.getValue()
-                        ) + 1
-                ) % players.size();
+        int nextIndex = (players.indexOf(currentPlayer.getValue()) + 1) % players.size();
 
-        Player nextPlayer =
-                players.get(nextIndex);
+        Player nextPlayer = players.get(nextIndex);
 
-        this.currentPlayer.setValue(
-                nextPlayer
-        );
+        this.currentPlayer.setValue(nextPlayer);
 
         computePaths();
 
-        this.state.setValue(
-                GameState.MAZE_MOVE
-        );
+        this.state.setValue(GameState.MAZE_MOVE);
 
         // IMPORTANT :
         // le prochain bot joue automatiquement
         // MAIS seulement après le clic OK
-        if (this.getCurrentPlayer() != null
-                && this.getCurrentPlayer().isBot()) {
-
-            Platform.runLater(
-                    this::startTurn
-            );
+        if (this.getCurrentPlayer() != null && this.getCurrentPlayer().isBot()) {
+            Platform.runLater(this::startTurn);
         }
     }
 
-    public ObservableValue<Paths<Tile>>
-    pathsProperty() {
-
+    public ObservableValue<Paths<Tile>> pathsProperty() {
         return this.paths.asReadOnly();
     }
 
@@ -499,38 +414,21 @@ public class Game {
     // calcule les chemins accessibles
     private void computePaths() {
 
-        if (maze.getValue() == null
-                || currentPlayer.getValue() == null) {
-
+        if (maze.getValue() == null || currentPlayer.getValue() == null) {
             this.paths.setValue(null);
-
             return;
         }
 
-        Graph<Tile> graph =
-                MazeToGraphAdapter.getGraph(
-                        maze.getValue()
-                );
+        Graph<Tile> graph = MazeToGraphAdapter.getGraph(maze.getValue());
 
-        Tile currentTile =
-                this.maze.getValue()
-                        .getTile(
-                                currentPlayer.getValue()
-                        );
+        Tile currentTile = this.maze.getValue().getTile(currentPlayer.getValue());
 
         if (currentTile == null) {
-
             this.paths.setValue(null);
-
             return;
         }
 
-        this.paths.setValue(
-                new Paths<>(
-                        graph,
-                        currentTile
-                )
-        );
+        this.paths.setValue(new Paths<>(graph, currentTile));
     }
 
     // hydrate le jeu
@@ -538,42 +436,28 @@ public class Game {
 
         // réinitialisation
         this.players.clear();
-
         this.paths.setValue(null);
 
         // recréer joueurs
-        List<PlayerDTO> playerDTOs =
-                dto.getPlayers();
+        List<PlayerDTO> playerDTOs = dto.getPlayers();
 
         for (int i = 0; i < 4; i++) {
 
-            Slot slot =
-                    getSlot(i);
-
-            PlayerDTO pDto =
-                    playerDTOs.get(i);
+            Slot slot = getSlot(i);
+            PlayerDTO pDto = playerDTOs.get(i);
 
             if (pDto != null) {
 
                 if (slot.getPlayer() == null) {
-
-                    slot.open(
-                            pDto.isBot()
-                    );
+                    slot.open(pDto.isBot());
                 }
 
-                slot.getPlayer()
-                        .updateFrom(pDto);
+                slot.getPlayer().updateFrom(pDto);
+                players.add(slot.getPlayer());
 
-                players.add(
-                        slot.getPlayer()
-                );
-            }
-
-            else {
+            } else {
 
                 if (slot.getPlayer() != null) {
-
                     slot.close();
                 }
             }
@@ -581,61 +465,38 @@ public class Game {
 
         // recréer labyrinthe
         if (dto.getMaze() != null) {
-
-            this.maze.setValue(
-                    Maze.from(
-                            dto.getMaze(),
-                            players
-                    )
-            );
-        }
-
-        else {
-
+            this.maze.setValue(Maze.from(dto.getMaze(), players));
+        } else {
             this.maze.setValue(null);
         }
 
         // joueur courant
-        Player newCurrentPlayer =
-                null;
-
-        int cpIndex =
-                dto.getCurrentPlayerIndex();
+        Player newCurrentPlayer = null;
+        int cpIndex = dto.getCurrentPlayerIndex();
 
         if (cpIndex >= 0) {
-
             for (Player p : players) {
-
                 if (p.getIndex() == cpIndex) {
-
                     newCurrentPlayer = p;
-
                     break;
                 }
             }
         }
 
-        this.currentPlayer.setValue(
-                newCurrentPlayer
-        );
+        this.currentPlayer.setValue(newCurrentPlayer);
 
-        if (newCurrentPlayer != null
-                && this.maze.getValue() != null) {
-
+        if (newCurrentPlayer != null && this.maze.getValue() != null) {
             computePaths();
         }
 
         // état
-        this.state.setValue(
-                dto.getState()
-        );
+        this.state.setValue(dto.getState());
     }
 
     // démarrage tour bot
     public void startTurn() {
 
-        Player player =
-                this.getCurrentPlayer();
+        Player player = this.getCurrentPlayer();
 
         if (player == null) {
             return;
@@ -645,80 +506,49 @@ public class Game {
             return;
         }
 
-        if (this.getState()
-                != GameState.MAZE_MOVE) {
-
+        if (this.getState() != GameState.MAZE_MOVE) {
             return;
         }
 
         try {
 
-            Move move =
-                    STRATEGY.getNextMove(
-                            new GameDTO(this)
-                    );
+            Move move = STRATEGY.getNextMove(new GameDTO(this));
 
             if (move == null) {
                 return;
             }
 
             // rotation
-            this.rotateExtraTile(
-                    move.nbRotations()
-            );
+            this.rotateExtraTile(move.nbRotations());
 
             // déplacement labyrinthe
-            this.moveMaze(
-                    move.mazeMove()
-            );
+            this.moveMaze(move.mazeMove());
 
             // destination
-            Position p =
-                    move.destination();
+            Position p = move.destination();
 
-            Tile destinationTile =
-                    null;
+            Tile destinationTile = null;
 
             if (p != null) {
 
-                Grid<Tile> tiles =
-                        this.getMaze()
-                                .getTiles();
+                Grid<Tile> tiles = this.getMaze().getTiles();
 
-                if (
-                        p.x() >= 0
-                                && p.x() < tiles.getWidth()
-                                && p.y() >= 0
-                                && p.y() < tiles.getHeight()
-                ) {
+                if (p.x() >= 0 && p.x() < tiles.getWidth() && p.y() >= 0 && p.y() < tiles.getHeight()) {
 
-                    destinationTile =
-                            tiles.get(
-                                    p.x(),
-                                    p.y()
-                            );
+                    destinationTile = tiles.get(p.x(), p.y());
                 }
             }
 
             // fallback :
             // rester sur place
-            if (
-                    destinationTile == null
-                            || this.getPaths() == null
-                            || !this.getPaths()
-                            .isAccessible(destinationTile)
-            ) {
-
-                destinationTile =
-                        this.getTile(player);
+            if (destinationTile == null || this.getPaths() == null || !this.getPaths().isAccessible(destinationTile)) {
+                destinationTile = this.getTile(player);
             }
 
             // déplacement joueur
             this.movePlayer(destinationTile);
-        }
 
-        catch (Exception e) {
-
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

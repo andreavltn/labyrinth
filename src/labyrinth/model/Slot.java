@@ -8,30 +8,20 @@ import java.util.UUID;
 public class Slot {
 
     private final Game game;
-
     private final int index;
-
     private final SimpleObservableValue<Player> player;
 
-    public Slot(
-            Game game,
-            int index
-    ) {
-
+    public Slot(Game game, int index) {
         this.game = game;
         this.index = index;
-
-        this.player =
-                new SimpleObservableValue<>(null);
+        this.player = new SimpleObservableValue<>(null);
     }
 
     public int getIndex() {
         return index;
     }
 
-    public ObservableValue<Player>
-    playerProperty() {
-
+    public ObservableValue<Player> playerProperty() {
         return player.asReadOnly();
     }
 
@@ -45,19 +35,12 @@ public class Slot {
 
     private void checkSlotOpenable() {
 
-        if (game.getState()
-                != GameState.SETUP) {
-
-            throw new IllegalStateException(
-                    "Le jeu n'est pas en mode SETUP"
-            );
+        if (game.getState() != GameState.SETUP) {
+            throw new IllegalStateException("Le jeu n'est pas en mode SETUP");
         }
 
         if (!isOpen()) {
-
-            throw new IllegalStateException(
-                    "Le slot est déjà occupé"
-            );
+            throw new IllegalStateException("Le slot est déjà occupé");
         }
     }
 
@@ -66,15 +49,9 @@ public class Slot {
     }
 
     public void open(boolean isBot) {
-
         checkSlotOpenable();
 
-        Player newPlayer =
-                new Player(
-                        this.index,
-                        isBot
-                );
-
+        Player newPlayer = new Player(this.index, isBot);
         this.player.setValue(newPlayer);
     }
 
@@ -82,31 +59,17 @@ public class Slot {
         open(uuid, false);
     }
 
-    public void open(
-            UUID uuid,
-            boolean isBot
-    ) {
-
+    public void open(UUID uuid, boolean isBot) {
         checkSlotOpenable();
 
-        Player newPlayer =
-                new Player(
-                        this.index,
-                        uuid,
-                        isBot
-                );
-
+        Player newPlayer = new Player(this.index, uuid, isBot);
         this.player.setValue(newPlayer);
     }
 
     public void close() {
 
-        if (game.getState()
-                != GameState.SETUP) {
-
-            throw new IllegalStateException(
-                    "Le jeu n'est pas en mode SETUP"
-            );
+        if (game.getState() != GameState.SETUP) {
+            throw new IllegalStateException("Le jeu n'est pas en mode SETUP");
         }
 
         this.player.setValue(null);
