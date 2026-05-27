@@ -3,6 +3,8 @@ package labyrinth.service;
 import labyrinth.model.Game;
 import labyrinth.service.persistence.SqlPersistenceService;
 import labyrinth.service.serialization.GameDTO;
+import javafx.application.Platform;
+import labyrinth.model.GameState;
 
 public class GameInitializer {
 
@@ -17,6 +19,13 @@ public class GameInitializer {
         GameDTO dto = persistenceService.loadLatestGame(); // charge la dernière partie sauvegardée
         if (dto != null) { // si il y avait une partie sauvegardée
             game.updateFrom(dto); // hydrate le jeu avec les données
+
+            // si le joueur courant est un bot, déclencher son tour
+            if (game.getCurrentPlayer() != null
+                    && game.getCurrentPlayer().isBot()
+                    && game.getState() == GameState.MAZE_MOVE) {
+                Platform.runLater(() -> game.startTurn());
+            }
         }
         // sinon ne fait rien (bdd vide)
     }
