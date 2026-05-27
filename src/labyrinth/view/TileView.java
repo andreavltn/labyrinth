@@ -63,7 +63,7 @@ public class TileView extends StackPane {
 
         // état si changement
         viewModel.treasureIdProperty().addListener((obs, old, id) -> {
-            treasureLabel.setText(id >= 0 ? "T" + id : ""); // T[X] sinon rien
+            treasureLabel.setText(id >= 0 ? "T" + (id + 1) : ""); // T[X] sinon rien
         });
 
         // image du joueur présent sur la tuile
