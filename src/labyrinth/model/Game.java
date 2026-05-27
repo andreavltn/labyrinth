@@ -1,6 +1,8 @@
 package labyrinth.model;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.util.Duration;
 import labyrinth.model.strategy.DefaultPlayStrategy;
 import labyrinth.model.strategy.Move;
 import labyrinth.model.strategy.PlayStrategy;
@@ -355,10 +357,13 @@ public class Game {
         }
 
         else {
+            this.state.setValue(GameState.TURN_END);
+            // si joueur humain : c'est la pop up qui gère
+            // si bot : endTurn directement
+            if (currentPlayer.getValue().isBot()) {
+                endTurn();
+            }
 
-            this.state.setValue(
-                    GameState.TURN_END
-            );
         }
     }
 
@@ -395,9 +400,6 @@ public class Game {
 
         this.state.setValue(GameState.MAZE_MOVE);
 
-        // IMPORTANT :
-        // le prochain bot joue automatiquement
-        // MAIS seulement après le clic OK
         if (this.getCurrentPlayer() != null && this.getCurrentPlayer().isBot()) {
             Platform.runLater(this::startTurn);
         }
@@ -510,46 +512,57 @@ public class Game {
             return;
         }
 
-        try {
+        // pause2 de 0.8s
+        PauseTransition pause2 = new PauseTransition(Duration.millis(800));
 
-            Move move = STRATEGY.getNextMove(new GameDTO(this));
+        pause2.setOnFinished(event -> {
+            try {
 
-            if (move == null) {
-                return;
-            }
+                Move move = STRATEGY.getNextMove(new GameDTO(this));
 
-            // rotation
-            this.rotateExtraTile(move.nbRotations());
-
-            // déplacement labyrinthe
-            this.moveMaze(move.mazeMove());
-
-            // destination
-            Position p = move.destination();
-
-            Tile destinationTile = null;
-
-            if (p != null) {
-
-                Grid<Tile> tiles = this.getMaze().getTiles();
-
-                if (p.x() >= 0 && p.x() < tiles.getWidth() && p.y() >= 0 && p.y() < tiles.getHeight()) {
-
-                    destinationTile = tiles.get(p.x(), p.y());
+                if (move == null) {
+                    return;
                 }
+
+                // rotation
+                this.rotateExtraTile(move.nbRotations());
+
+                // déplacement labyrinthe
+                this.moveMaze(move.mazeMove());
+
+                // pause1 de 0.8s
+                PauseTransition pause1 = new PauseTransition(Duration.millis(800));
+                pause1.setOnFinished(event2 -> {
+
+                    // destination
+                    Position p = move.destination();
+                    Tile destinationTile = null;
+
+                    if (p != null) {
+                        Grid<Tile> tiles = this.getMaze().getTiles();
+
+                        if (p.x() >= 0 && p.x() < tiles.getWidth() && p.y() >= 0 && p.y() < tiles.getHeight()) {
+                            destinationTile = tiles.get(p.x(), p.y());
+                        }
+                    }
+
+                    // fallback :
+                    // rester sur place
+                    if (destinationTile == null || this.getPaths() == null || !this.getPaths().isAccessible(destinationTile)) {
+                        destinationTile = this.getTile(player);
+                    }
+
+                    // déplacement joueur
+                    this.movePlayer(destinationTile);
+                });
+
+                pause1.play(); // applique pause1
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        });
 
-            // fallback :
-            // rester sur place
-            if (destinationTile == null || this.getPaths() == null || !this.getPaths().isAccessible(destinationTile)) {
-                destinationTile = this.getTile(player);
-            }
-
-            // déplacement joueur
-            this.movePlayer(destinationTile);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        pause2.play(); // applique pause2
     }
 }

@@ -59,16 +59,6 @@ public class BaseMazeViewModel implements MazeViewModel {
         // écoute les changements d'état pour les cellules et les slots
         state.addListener((obs, old, newState) -> {
 
-            // si c'est la fin du tour
-            if (newState == GameState.TURN_END
-                    && services != null
-                    && services.getDialogService() != null) {
-
-                services.getDialogService().publishMessage(
-                        "Fin du tour - cliquez sur OK"
-                );
-            }
-
             // slotsActive = true si on est en MAZE_MOVE, false sinon
             boolean slotsActive = newState == GameState.MAZE_MOVE;
 
