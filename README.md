@@ -59,15 +59,13 @@ le plus possible du trésor qu'il doit atteindre, en créant un chemin accessibl
 
 - Java 21 ou supérieur (JDK ou JRE)
 - JavaFX SDK 21 ou supérieur, à télécharger séparément : [gluonhq.com/products/javafx](https://gluonhq.com/products/javafx/)
-- `labyrinth.jar`, disponible dans l'onglet [Releases](https://github.com/andreavltn/labyrinth/releases)
+- `labyrinth.jar` : [Releases](https://github.com/andreavltn/labyrinth/releases)
 
 SQLite (JDBC) et Gson sont déjà inclus dans le `.jar`, rien d'autre à installer.
 
 ## Lancement
 
-1. Télécharger `labyrinth.jar` depuis les [Releases](https://github.com/andreavltn/labyrinth/releases).
-2. Télécharger et dézipper le SDK JavaFX.
-3. Ouvrir un terminal **dans le dossier contenant `labyrinth.jar`**, puis exécuter :
+Ouvrir un terminal **dans le dossier contenant `labyrinth.jar`**, puis exécuter :
 
 **Windows**
 
