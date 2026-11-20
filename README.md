@@ -25,16 +25,6 @@ et la possibilité de joueur contre des bots.
 - SQLite (via JDBC)
 - Gson
 
-## Lancer le projet + Informations importantes
-
-- java --module-path [libJavaFX] --add-modules javafx.controls,javafx.fxml -jar labyrinth.jar
-  - où [libJavaFX] est le chemin d'accès absolu vers le répertoire 'lib' de l'installation JavaFX sur la machine
-
-- Un fichier labyrinth.db est généré au lancement de l'application, et permet la persistence de la partie en cours.
-  - Si le jeu est fermé et relancé, la partie reprend son cours là où elle a été interrompue.
-- IMPORTANT: Pour la sauvegarde, il faut enregistrer le fichier au format .json
-
-
 ## Structure
 
 ```
@@ -64,3 +54,37 @@ Les modèles de vues adaptent ces observables vers JavaFX avec `FxAdapter`.
 Dans le moteur de simulation (`GameSimulation`), le bot explore les coups possibles sans modifier l'état réel de la partie.
 Il cherche quel coup sera le meilleur parmi la majorité des coups possibles. Sa stratégie est simplement de se rapprocher
 le plus possible du trésor qu'il doit atteindre, en créant un chemin accessible.
+
+## Prérequis
+
+- Java 21 ou supérieur (JDK ou JRE)
+- JavaFX SDK 21 ou supérieur, à télécharger séparément : [gluonhq.com/products/javafx](https://gluonhq.com/products/javafx/)
+- `labyrinth.jar`, disponible dans l'onglet [Releases](https://github.com/andreavltn/labyrinth/releases)
+
+SQLite (JDBC) et Gson sont déjà inclus dans le `.jar`, rien d'autre à installer.
+
+## Lancement
+
+1. Télécharger `labyrinth.jar` depuis les [Releases](https://github.com/andreavltn/labyrinth/releases).
+2. Télécharger et dézipper le SDK JavaFX.
+3. Ouvrir un terminal **dans le dossier contenant `labyrinth.jar`**, puis exécuter :
+
+**Windows**
+
+```powershell
+java --module-path "C:\chemin\vers\javafx-sdk-21\lib" --add-modules javafx.controls,javafx.fxml -jar labyrinth.jar
+```
+
+**Linux / macOS**
+
+```bash
+java --module-path /chemin/vers/javafx-sdk-21/lib --add-modules javafx.controls,javafx.fxml -jar labyrinth.jar
+```
+
+> Remplacer le chemin par celui du dossier `lib` de votre installation de JavaFX.
+
+## Sauvegarde et persistance
+
+- Au premier lancement, un fichier `labyrinth.db` est créé **dans le dossier depuis lequel la commande est exécutée**. Il contient la partie en cours et les profils des joueurs.
+- Si le jeu est fermé puis relancé depuis le même dossier, la partie reprend là où elle s'était arrêtée.
+- Pour une sauvegarde manuelle, enregistrer le fichier avec l'extension `.json`.
