@@ -64,23 +64,3 @@ Les modèles de vues adaptent ces observables vers JavaFX avec `FxAdapter`.
 Dans le moteur de simulation (`GameSimulation`), le bot explore les coups possibles sans modifier l'état réel de la partie.
 Il cherche quel coup sera le meilleur parmi la majorité des coups possibles. Sa stratégie est simplement de se rapprocher
 le plus possible du trésor qu'il doit atteindre, en créant un chemin accessible.
-
-## Difficultés rencontrées
-
-- Beaucoup de temps pour bien comprendre le modèle MVVM et son implémentation
-- Quelques problèmes tout le long du projet pour afficher/cacher et mettre à jour des données affichées sur l'interface
-en temps réel
-- Un bon blocage sur la sauvegarde/chargement pour réussir à reprendre une partie en cours de route. Il fallait forcer
-le raffraichissement de l'affichage pour revenir sur le plateau de jeu, et bien gérer le tour qui était en cours avant
-d'avoir quitté l'application.
-- Quelques oublis à droite à gauche, comme des "id" au lieu de "id+1" sur l'affichage du numéro de trésor
-dans les tuiles, qui créait des doublons et donc des trésors manquants (existants, mais cachés sous un mauvais numéro)
-- Un peu de problèmes avec le bot et le popup. Initialement, il y avait un popup de fin de tour, mais le fait de
-relancer une nouvelle partie pendant qu'on en jouait déjà une (par exemple) ne supprimait pas les anciens écouteurs 
-pour leur création, et donc la nouvelle partie avait 2x plus de popups qui s'ouvraient. L'idée a été avortée, 
-et remplacée par un délai entre chaque coup du bot pour bien voir ce qu'il a fait durant son tour.
-
-## Auteurs
-
-VALENTINI Andréa
-FUCHS Jordan
